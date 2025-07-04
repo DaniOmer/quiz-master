@@ -104,34 +104,45 @@ jobs:
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
 
-      - name: 🏷️ Extract latest tags
+      - name: 🏷️ Set image tags
         id: extract-tags
         run: |
-          # Debug: Afficher tous les tags générés
-          echo "=== Frontend tags ==="
-          echo "${{ steps.meta-frontend.outputs.tags }}"
-          echo "=== Backend tags ==="
-          echo "${{ steps.meta-backend.outputs.tags }}"
-          echo "===================="
+          # Debug: Vérifier les variables d'environnement
+          echo "=== Environment Variables ==="
+          echo "REGISTRY: ${{ env.REGISTRY }}"
+          echo "REGISTRY_NAME: ${{ env.REGISTRY_NAME }}"
+          echo "IMAGE_NAME_FRONTEND: ${{ env.IMAGE_NAME_FRONTEND }}"
+          echo "IMAGE_NAME_BACKEND: ${{ env.IMAGE_NAME_BACKEND }}"
+          echo "============================="
 
-          # Extraire le tag latest pour frontend (plus robuste)
-          FRONTEND_LATEST=$(echo "${{ steps.meta-frontend.outputs.tags }}" | grep -E "(latest|main)" | head -1)
-          if [ -z "$FRONTEND_LATEST" ]; then
-            FRONTEND_LATEST=$(echo "${{ steps.meta-frontend.outputs.tags }}" | head -1)
+          # Construire les tags directement
+          FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_FRONTEND }}:latest"
+          BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_BACKEND }}:latest"
+
+          # Vérifier que les images ne sont pas vides
+          if [ -z "$FRONTEND_IMAGE" ] || [ "$FRONTEND_IMAGE" = "/:latest" ]; then
+            echo "❌ Error: Frontend image construction failed"
+            echo "REGISTRY: '${{ env.REGISTRY }}'"
+            echo "REGISTRY_NAME: '${{ env.REGISTRY_NAME }}'"
+            echo "IMAGE_NAME_FRONTEND: '${{ env.IMAGE_NAME_FRONTEND }}'"
+            exit 1
           fi
-          echo "frontend-latest=$FRONTEND_LATEST" >> $GITHUB_OUTPUT
 
-          # Extraire le tag latest pour backend (plus robuste)
-          BACKEND_LATEST=$(echo "${{ steps.meta-backend.outputs.tags }}" | grep -E "(latest|main)" | head -1)
-          if [ -z "$BACKEND_LATEST" ]; then
-            BACKEND_LATEST=$(echo "${{ steps.meta-backend.outputs.tags }}" | head -1)
+          if [ -z "$BACKEND_IMAGE" ] || [ "$BACKEND_IMAGE" = "/:latest" ]; then
+            echo "❌ Error: Backend image construction failed"
+            echo "REGISTRY: '${{ env.REGISTRY }}'"
+            echo "REGISTRY_NAME: '${{ env.REGISTRY_NAME }}'"
+            echo "IMAGE_NAME_BACKEND: '${{ env.IMAGE_NAME_BACKEND }}'"
+            exit 1
           fi
-          echo "backend-latest=$BACKEND_LATEST" >> $GITHUB_OUTPUT
 
-          echo "=== Final Results ==="
-          echo "Frontend latest: $FRONTEND_LATEST"
-          echo "Backend latest: $BACKEND_LATEST"
-          echo "===================="
+          echo "frontend-latest=$FRONTEND_IMAGE" >> $GITHUB_OUTPUT
+          echo "backend-latest=$BACKEND_IMAGE" >> $GITHUB_OUTPUT
+
+          echo "=== Image Tags Set ==="
+          echo "Frontend: $FRONTEND_IMAGE"
+          echo "Backend: $BACKEND_IMAGE"
+          echo "====================="
 
   # Déploiement avec Ansible
   deploy:

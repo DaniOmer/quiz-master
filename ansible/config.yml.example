@@ -1,6 +1,6 @@
 # Configuration des serveurs Digital Ocean
-frontend_server_ip: "164.90.225.146"  # Remplacez par l'IP de votre serveur frontend
-backend_server_ip: "164.90.225.147"   # Remplacez par l'IP de votre serveur backend
+frontend_server_ip: "164.92.234.29"
+backend_server_ip: "68.183.220.114"
 
 # Configuration Digital Ocean
 do_pat: "your-do-personal-access-token"  # Token d'accès Digital Ocean

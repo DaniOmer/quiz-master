@@ -141,12 +141,28 @@ jobs:
           echo "${{ secrets.BACKEND_SSH_PRIVATE_KEY }}" > ~/.ssh/backend_key
           chmod 600 ~/.ssh/backend_key
 
-          # Configuration SSH pour éviter la vérification des host keys
+          # Configuration SSH spécifique pour chaque serveur
           cat > ~/.ssh/config << EOF
-          Host *
+          Host frontend-server
+            HostName ${{ secrets.FRONTEND_SERVER_IP }}
+            User root
+            IdentityFile ~/.ssh/frontend_key
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+
+          Host backend-server
+            HostName ${{ secrets.BACKEND_SERVER_IP }}
+            User root
+            IdentityFile ~/.ssh/backend_key
             StrictHostKeyChecking no
             UserKnownHostsFile=/dev/null
           EOF
+
+      - name: 🔍 Test SSH connectivity
+        run: |
+          echo "Testing SSH connectivity..."
+          ssh -o ConnectTimeout=10 frontend-server "echo 'Frontend server connected successfully'"
+          ssh -o ConnectTimeout=10 backend-server "echo 'Backend server connected successfully'"
 
       - name: 🔐 Install doctl
         uses: digitalocean/action-doctl@v2

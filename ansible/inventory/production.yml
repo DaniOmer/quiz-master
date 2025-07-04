@@ -3,17 +3,15 @@ all:
     frontend:
       hosts:
         frontend-server:
-          ansible_host: "{{ frontend_server_ip }}"
+          ansible_host: frontend-server
           ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/frontend_key
           server_type: frontend
 
     backend:
       hosts:
         backend-server:
-          ansible_host: "{{ backend_server_ip }}"
+          ansible_host: backend-server
           ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/backend_key
           server_type: backend
 
     quiz_master:

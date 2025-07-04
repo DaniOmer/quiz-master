@@ -1,0 +1,48 @@
+all:
+  children:
+    frontend:
+      hosts:
+        frontend-server:
+          ansible_host: "{{ frontend_server_ip }}"
+          ansible_user: root
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          server_type: frontend
+
+    backend:
+      hosts:
+        backend-server:
+          ansible_host: "{{ backend_server_ip }}"
+          ansible_user: root
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          server_type: backend
+
+    quiz_master:
+      children:
+        - frontend
+        - backend
+      vars:
+        # Variables communes
+        docker_compose_version: "2.21.0"
+        nginx_version: "1.24"
+        app_name: "quiz-master"
+        app_user: "quizmaster"
+        app_directory: "/opt/quiz-master"
+
+        # Container Registry
+        registry_url: "{{ registry }}"
+        registry_username: "{{ github_actor }}"
+        registry_password: "{{ github_token }}"
+
+        # Images
+        frontend_image: "{{ frontend_image }}"
+        backend_image: "{{ backend_image }}"
+
+        # Networking
+        frontend_port: 3000
+        backend_port: 8003
+        nginx_port: 80
+        ssl_port: 443
+
+        # Environment
+        node_env: "production"
+        log_level: "info"

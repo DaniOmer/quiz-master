@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    image: "{{ backend_image }}"
+    container_name: "{{ app_name }}-backend"
+    restart: unless-stopped
+    ports:
+      - "{{ backend_port }}:8003"
+    environment:
+      - NODE_ENV={{ node_env }}
+      - PORT=8003
+      - FRONTEND_URL=http://{{ frontend_server_ip }}
+      - CORS_ORIGIN=http://{{ frontend_server_ip }}
+    networks:
+      - quiz-master
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "{{ log_max_size }}"
+        max-file: "{{ log_max_files }}"
+
+networks:
+  quiz-master:
+    driver: bridge 

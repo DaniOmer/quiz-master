@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: "{{ frontend_image }}"
+    container_name: "{{ app_name }}-frontend"
+    restart: unless-stopped
+    ports:
+      - "{{ frontend_port }}:3000"
+    environment:
+      - NODE_ENV={{ node_env }}
+      - BACKEND_URL=http://{{ backend_server_ip }}:{{ backend_port }}
+      - NEXT_PUBLIC_BACKEND_URL=http://{{ backend_server_ip }}:{{ backend_port }}
+      - NEXT_PUBLIC_SOCKET_URL=http://{{ backend_server_ip }}:{{ backend_port }}
+      - PORT=3000
+    networks:
+      - quiz-master
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "{{ log_max_size }}"
+        max-file: "{{ log_max_files }}"
+
+networks:
+  quiz-master:
+    driver: bridge 

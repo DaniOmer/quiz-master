@@ -1,0 +1,43 @@
+FROM node:18-alpine AS base
+
+# Installer les dépendances uniquement quand nécessaire
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
+
+# Build stage
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Compiler TypeScript pour le backend
+RUN npm install -g tsx typescript
+RUN npx tsc server/index.ts --outDir dist --target es2020 --module commonjs --esModuleInterop --resolveJsonModule --declaration --strict
+
+# Image de production
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 backend
+
+# Copier les dépendances et le code compilé
+COPY --from=deps --chown=backend:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=backend:nodejs /app/server ./server
+COPY --from=builder --chown=backend:nodejs /app/shared ./shared
+COPY --from=builder --chown=backend:nodejs /app/package.json ./
+
+USER backend
+
+EXPOSE 8003
+
+ENV PORT 8003
+
+CMD ["npm", "run", "dev:server"]

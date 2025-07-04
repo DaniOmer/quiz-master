@@ -1,0 +1,16 @@
+# Configuration des serveurs Digital Ocean
+frontend_server_ip: "164.90.225.146"  # Remplacez par l'IP de votre serveur frontend
+backend_server_ip: "164.90.225.147"   # Remplacez par l'IP de votre serveur backend
+
+# Configuration Digital Ocean
+do_pat: "your-do-personal-access-token"  # Token d'accès Digital Ocean
+do_registry_name: "your-registry-name"   # Nom de votre registry DO (créé par Terraform)
+
+# Configuration des images Docker
+registry: "registry.digitalocean.com"
+frontend_image: "registry.digitalocean.com/your-registry-name/quiz-master-frontend:latest"
+backend_image: "registry.digitalocean.com/your-registry-name/quiz-master-backend:latest"
+
+# Configuration optionnelle
+node_env: "production"
+log_level: "info" 

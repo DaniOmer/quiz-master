@@ -1,0 +1,145 @@
+name: 🚀 CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: registry.digitalocean.com
+  REGISTRY_NAME: ${{ secrets.DO_REGISTRY_NAME }}
+  IMAGE_NAME_FRONTEND: quiz-master-frontend
+  IMAGE_NAME_BACKEND: quiz-master-backend
+
+jobs:
+  # Tests et Quality Checks
+  test:
+    runs-on: ubuntu-latest
+    name: 🧪 Tests & Quality
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run linter
+        run: npm run lint
+
+      - name: 🧪 Run type check
+        run: npm run type-check
+
+      - name: 🏗️ Test build
+        run: npm run build
+
+  # Build et Push des images Docker
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    name: 🏗️ Build & Push Images
+    if: github.ref == 'refs/heads/main'
+
+    outputs:
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_PAT }}
+
+      - name: 🔐 Login to Digital Ocean Container Registry
+        run: doctl registry login
+
+      - name: 🏷️ Extract metadata for Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🏷️ Extract metadata for Backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_BACKEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🔨 Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+
+      - name: 🔨 Build and push Backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+
+  # Déploiement avec Ansible
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy to Digital Ocean
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install Ansible
+        run: |
+          pip install ansible docker
+
+      - name: 🔐 Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 🔐 Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_PAT }}
+
+      - name: 🚀 Deploy with Ansible
+        run: |
+          cd ansible
+          ansible-playbook -i inventory/production.yml deploy.yml
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REGISTRY_NAME: ${{ env.REGISTRY_NAME }}
+          FRONTEND_IMAGE: ${{ needs.build.outputs.frontend-image }}
+          BACKEND_IMAGE: ${{ needs.build.outputs.backend-image }}
+          DO_PAT: ${{ secrets.DO_PAT }}

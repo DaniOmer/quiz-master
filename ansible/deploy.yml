@@ -1,0 +1,146 @@
+---
+- name: 🚀 Deploy Quiz Master Application
+  hosts: quiz_master
+  become: yes
+  gather_facts: yes
+
+  vars:
+    # Variables depuis les variables d'environnement
+    registry: "{{ lookup('env', 'REGISTRY') }}"
+    registry_name: "{{ lookup('env', 'REGISTRY_NAME') }}"
+    frontend_image: "{{ lookup('env', 'FRONTEND_IMAGE') }}"
+    backend_image: "{{ lookup('env', 'BACKEND_IMAGE') }}"
+    do_pat: "{{ lookup('env', 'DO_PAT') }}"
+
+    # Configuration des serveurs
+    frontend_server_ip: "{{ lookup('env', 'FRONTEND_SERVER_IP') }}"
+    backend_server_ip: "{{ lookup('env', 'BACKEND_SERVER_IP') }}"
+
+  pre_tasks:
+    - name: 📋 Display deployment info
+      debug:
+        msg: |
+          Deploying Quiz Master:
+          - Frontend Image: {{ frontend_image }}
+          - Backend Image: {{ backend_image }}
+          - Registry: {{ registry }}/{{ registry_name }}
+          - Target: {{ inventory_hostname }}
+          - Type: {{ server_type }}
+
+  tasks:
+    - name: 🔐 Install doctl
+      get_url:
+        url: "https://github.com/digitalocean/doctl/releases/download/v1.104.0/doctl-1.104.0-linux-amd64.tar.gz"
+        dest: "/tmp/doctl.tar.gz"
+        mode: "0644"
+
+    - name: 🔐 Extract doctl
+      unarchive:
+        src: "/tmp/doctl.tar.gz"
+        dest: "/usr/local/bin"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: 🔐 Login to Digital Ocean Container Registry
+      shell: |
+        echo "{{ do_pat }}" | /usr/local/bin/doctl auth init --access-token -
+        /usr/local/bin/doctl registry login
+      no_log: true
+
+    - name: 🛑 Stop existing containers
+      docker_compose:
+        project_src: "{{ app_directory }}"
+        state: absent
+      ignore_errors: yes
+
+    - name: 📁 Ensure app directory exists
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+
+    - name: 📄 Generate docker-compose.yml for frontend
+      template:
+        src: docker-compose.frontend.yml.j2
+        dest: "{{ app_directory }}/docker-compose.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0644"
+      when: server_type == 'frontend'
+
+    - name: 📄 Generate docker-compose.yml for backend
+      template:
+        src: docker-compose.backend.yml.j2
+        dest: "{{ app_directory }}/docker-compose.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0644"
+      when: server_type == 'backend'
+
+    - name: 🎯 Pull latest images
+      docker_image:
+        name: "{{ item }}"
+        source: pull
+        force_source: yes
+      loop:
+        - "{{ frontend_image }}"
+        - "{{ backend_image }}"
+
+    - name: 🚀 Start application
+      docker_compose:
+        project_src: "{{ app_directory }}"
+        state: present
+        pull: yes
+        recreate: always
+      register: docker_result
+
+    - name: 📊 Display deployment result
+      debug:
+        var: docker_result
+
+    - name: ⏰ Wait for application to be ready
+      wait_for:
+        port: "{{ frontend_port if server_type == 'frontend' else backend_port }}"
+        delay: 10
+        timeout: 300
+
+    - name: 🔍 Verify application health
+      uri:
+        url: "http://localhost:{{ frontend_port if server_type == 'frontend' else backend_port }}{{ '/api/health' if server_type == 'backend' else '' }}"
+        method: GET
+        status_code: 200
+      register: health_check
+      retries: 5
+      delay: 10
+
+    - name: ✅ Deployment successful
+      debug:
+        msg: "✅ {{ server_type.title() }} deployed successfully!"
+      when: health_check.status == 200
+
+  post_tasks:
+    - name: 🧹 Clean up unused images
+      docker_prune:
+        images: yes
+        images_filters:
+          dangling: false
+          until: "24h"
+
+    - name: 📊 Show container status
+      docker_container_info:
+        name: "{{ app_name }}-{{ server_type }}"
+      register: container_info
+
+    - name: 📋 Display container info
+      debug:
+        msg: |
+          Container Status:
+          - Name: {{ container_info.container.Name }}
+          - Status: {{ container_info.container.State.Status }}
+          - Health: {{ container_info.container.State.Health.Status | default('N/A') }}
+          - Ports: {{ container_info.container.NetworkSettings.Ports }}
+      when: container_info.exists

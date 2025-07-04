@@ -1,0 +1,226 @@
+---
+- name: 🔧 Setup Quiz Master Infrastructure
+  hosts: quiz_master
+  become: yes
+  gather_facts: yes
+
+  vars:
+    # Configuration des serveurs
+    frontend_server_ip: "{{ lookup('env', 'FRONTEND_SERVER_IP') }}"
+    backend_server_ip: "{{ lookup('env', 'BACKEND_SERVER_IP') }}"
+
+  pre_tasks:
+    - name: 📋 Display setup info
+      debug:
+        msg: |
+          Setting up server: {{ inventory_hostname }}
+          Server type: {{ server_type }}
+          OS: {{ ansible_os_family }} {{ ansible_distribution_version }}
+
+  tasks:
+    - name: 🔄 Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: 📦 Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+          - ufw
+          - htop
+          - tree
+          - unzip
+          - git
+        state: present
+
+    - name: 🐳 Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: 🐳 Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: 🐳 Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+
+    - name: 🐳 Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: 👤 Create application user
+      user:
+        name: "{{ app_user }}"
+        shell: /bin/bash
+        home: /home/{{ app_user }}
+        groups: docker
+        append: yes
+
+    - name: 📁 Create application directory
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+
+    - name: 📁 Create logs directory
+      file:
+        path: "{{ app_directory }}/logs"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+
+    # Configuration spécifique Frontend
+    - name: 🌐 Install Nginx (Frontend only)
+      apt:
+        name: nginx
+        state: present
+      when: server_type == 'frontend'
+
+    - name: 🌐 Start and enable Nginx (Frontend only)
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+      when: server_type == 'frontend'
+
+    - name: 🌐 Remove default Nginx config (Frontend only)
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      when: server_type == 'frontend'
+      notify: restart nginx
+
+    - name: 🌐 Create Nginx configuration (Frontend only)
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/quiz-master
+        owner: root
+        group: root
+        mode: "0644"
+      when: server_type == 'frontend'
+      notify: restart nginx
+
+    - name: 🌐 Enable Nginx configuration (Frontend only)
+      file:
+        src: /etc/nginx/sites-available/quiz-master
+        dest: /etc/nginx/sites-enabled/quiz-master
+        state: link
+      when: server_type == 'frontend'
+      notify: restart nginx
+
+    # Configuration Firewall
+    - name: 🔥 Configure UFW - Allow SSH
+      ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: 🔥 Configure UFW - Allow HTTP (Frontend only)
+      ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+      when: server_type == 'frontend'
+
+    - name: 🔥 Configure UFW - Allow HTTPS (Frontend only)
+      ufw:
+        rule: allow
+        port: "443"
+        proto: tcp
+      when: server_type == 'frontend'
+
+    - name: 🔥 Configure UFW - Allow Frontend port
+      ufw:
+        rule: allow
+        port: "{{ frontend_port }}"
+        proto: tcp
+      when: server_type == 'frontend'
+
+    - name: 🔥 Configure UFW - Allow Backend port
+      ufw:
+        rule: allow
+        port: "{{ backend_port }}"
+        proto: tcp
+      when: server_type == 'backend'
+
+    - name: 🔥 Enable UFW
+      ufw:
+        state: enabled
+        policy: deny
+
+    # Sécurité SSH
+    - name: 🔐 Configure SSH security
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: "^PermitRootLogin", line: "PermitRootLogin yes" }
+        - {
+            regexp: "^PasswordAuthentication",
+            line: "PasswordAuthentication no",
+          }
+        - { regexp: "^PubkeyAuthentication", line: "PubkeyAuthentication yes" }
+        - { regexp: "^Port", line: "Port 22" }
+      notify: restart ssh
+
+    # Optimisation système
+    - name: ⚡ Optimize system limits
+      blockinfile:
+        path: /etc/security/limits.conf
+        block: |
+          * soft nofile 65536
+          * hard nofile 65536
+          * soft nproc 4096
+          * hard nproc 4096
+
+    - name: ⚡ Configure kernel parameters
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop:
+        - { name: "vm.max_map_count", value: "262144" }
+        - { name: "net.core.somaxconn", value: "1024" }
+        - { name: "net.core.netdev_max_backlog", value: "5000" }
+
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+
+    - name: restart ssh
+      systemd:
+        name: ssh
+        state: restarted
+
+  post_tasks:
+    - name: ✅ Setup completed
+      debug:
+        msg: |
+          🎉 Setup completed successfully!
+          Server type: {{ server_type }}
+          Application directory: {{ app_directory }}
+
+          Ready for deployment!

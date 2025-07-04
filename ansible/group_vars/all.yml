@@ -1,0 +1,37 @@
+# Variables globales pour Quiz Master
+# Ces variables peuvent être surchargées par les variables d'environnement
+
+# Configuration Docker
+docker_compose_version: "2.21.0"
+docker_users:
+  - "{{ app_user }}"
+
+# Configuration de l'application
+app_name: "quiz-master"
+app_user: "quizmaster"
+app_directory: "/opt/quiz-master"
+
+# Configuration réseau
+frontend_port: 3000
+backend_port: 8003
+nginx_port: 80
+ssl_port: 443
+
+# Configuration de l'environnement
+node_env: "production"
+log_level: "info"
+
+# Configuration de sécurité
+ssh_port: 22
+allowed_ssh_users:
+  - root
+  - "{{ app_user }}"
+
+# Configuration système
+system_timezone: "Europe/Paris"
+locale: "fr_FR.UTF-8"
+
+# Configuration des logs
+log_retention_days: 30
+log_max_size: "10m"
+log_max_files: 3

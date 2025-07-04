@@ -107,16 +107,31 @@ jobs:
       - name: 🏷️ Extract latest tags
         id: extract-tags
         run: |
-          # Extraire le tag latest pour frontend
-          FRONTEND_LATEST=$(echo "${{ steps.meta-frontend.outputs.tags }}" | grep ":latest" | head -1)
+          # Debug: Afficher tous les tags générés
+          echo "=== Frontend tags ==="
+          echo "${{ steps.meta-frontend.outputs.tags }}"
+          echo "=== Backend tags ==="
+          echo "${{ steps.meta-backend.outputs.tags }}"
+          echo "===================="
+
+          # Extraire le tag latest pour frontend (plus robuste)
+          FRONTEND_LATEST=$(echo "${{ steps.meta-frontend.outputs.tags }}" | grep -E "(latest|main)" | head -1)
+          if [ -z "$FRONTEND_LATEST" ]; then
+            FRONTEND_LATEST=$(echo "${{ steps.meta-frontend.outputs.tags }}" | head -1)
+          fi
           echo "frontend-latest=$FRONTEND_LATEST" >> $GITHUB_OUTPUT
 
-          # Extraire le tag latest pour backend
-          BACKEND_LATEST=$(echo "${{ steps.meta-backend.outputs.tags }}" | grep ":latest" | head -1)
+          # Extraire le tag latest pour backend (plus robuste)
+          BACKEND_LATEST=$(echo "${{ steps.meta-backend.outputs.tags }}" | grep -E "(latest|main)" | head -1)
+          if [ -z "$BACKEND_LATEST" ]; then
+            BACKEND_LATEST=$(echo "${{ steps.meta-backend.outputs.tags }}" | head -1)
+          fi
           echo "backend-latest=$BACKEND_LATEST" >> $GITHUB_OUTPUT
 
+          echo "=== Final Results ==="
           echo "Frontend latest: $FRONTEND_LATEST"
           echo "Backend latest: $BACKEND_LATEST"
+          echo "===================="
 
   # Déploiement avec Ansible
   deploy:
@@ -135,6 +150,25 @@ jobs:
           echo "Frontend image: '${{ needs.build.outputs.frontend-image }}'"
           echo "Backend image: '${{ needs.build.outputs.backend-image }}'"
           echo "=========================="
+
+      - name: ✅ Validate image tags
+        run: |
+          FRONTEND_IMAGE="${{ needs.build.outputs.frontend-image }}"
+          BACKEND_IMAGE="${{ needs.build.outputs.backend-image }}"
+
+          if [ -z "$FRONTEND_IMAGE" ] || [ "$FRONTEND_IMAGE" = "null" ]; then
+            echo "❌ Frontend image tag is empty or null"
+            exit 1
+          fi
+
+          if [ -z "$BACKEND_IMAGE" ] || [ "$BACKEND_IMAGE" = "null" ]; then
+            echo "❌ Backend image tag is empty or null"
+            exit 1
+          fi
+
+          echo "✅ Image tags validation passed"
+          echo "Frontend: $FRONTEND_IMAGE"
+          echo "Backend: $BACKEND_IMAGE"
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v4

@@ -115,34 +115,49 @@ jobs:
           echo "IMAGE_NAME_BACKEND: ${{ env.IMAGE_NAME_BACKEND }}"
           echo "============================="
 
+          # Vérifier que REGISTRY_NAME n'est pas vide
+          if [ -z "${{ env.REGISTRY_NAME }}" ]; then
+            echo "❌ Error: DO_REGISTRY_NAME secret is not set or is empty"
+            echo "Please add DO_REGISTRY_NAME secret in GitHub repository settings"
+            exit 1
+          fi
+
           # Construire les tags directement
           FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_FRONTEND }}:latest"
           BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_BACKEND }}:latest"
 
-          # Vérifier que les images ne sont pas vides
-          if [ -z "$FRONTEND_IMAGE" ] || [ "$FRONTEND_IMAGE" = "/:latest" ]; then
+          echo "=== Constructed Images ==="
+          echo "Frontend: $FRONTEND_IMAGE"
+          echo "Backend: $BACKEND_IMAGE"
+          echo "=========================="
+
+          # Vérifier que les images ne sont pas vides et sont valides
+          if [ -z "$FRONTEND_IMAGE" ] || [ "$FRONTEND_IMAGE" = "/:latest" ] || [[ "$FRONTEND_IMAGE" == *"//"* ]]; then
             echo "❌ Error: Frontend image construction failed"
             echo "REGISTRY: '${{ env.REGISTRY }}'"
             echo "REGISTRY_NAME: '${{ env.REGISTRY_NAME }}'"
             echo "IMAGE_NAME_FRONTEND: '${{ env.IMAGE_NAME_FRONTEND }}'"
+            echo "Constructed image: '$FRONTEND_IMAGE'"
             exit 1
           fi
 
-          if [ -z "$BACKEND_IMAGE" ] || [ "$BACKEND_IMAGE" = "/:latest" ]; then
+          if [ -z "$BACKEND_IMAGE" ] || [ "$BACKEND_IMAGE" = "/:latest" ] || [[ "$BACKEND_IMAGE" == *"//"* ]]; then
             echo "❌ Error: Backend image construction failed"
             echo "REGISTRY: '${{ env.REGISTRY }}'"
             echo "REGISTRY_NAME: '${{ env.REGISTRY_NAME }}'"
             echo "IMAGE_NAME_BACKEND: '${{ env.IMAGE_NAME_BACKEND }}'"
+            echo "Constructed image: '$BACKEND_IMAGE'"
             exit 1
           fi
 
+          # Définir les outputs
           echo "frontend-latest=$FRONTEND_IMAGE" >> $GITHUB_OUTPUT
           echo "backend-latest=$BACKEND_IMAGE" >> $GITHUB_OUTPUT
 
-          echo "=== Image Tags Set ==="
-          echo "Frontend: $FRONTEND_IMAGE"
-          echo "Backend: $BACKEND_IMAGE"
-          echo "====================="
+          echo "=== Outputs Set ==="
+          echo "frontend-latest=$FRONTEND_IMAGE"
+          echo "backend-latest=$BACKEND_IMAGE"
+          echo "=================="
 
   # Déploiement avec Ansible
   deploy:
@@ -154,6 +169,15 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
+      - name: 🔍 Debug workflow context
+        run: |
+          echo "=== Workflow Context ==="
+          echo "GitHub ref: ${{ github.ref }}"
+          echo "GitHub event: ${{ github.event_name }}"
+          echo "Is main branch: ${{ github.ref == 'refs/heads/main' }}"
+          echo "Build job status: ${{ needs.build.result }}"
+          echo "========================"
 
       - name: 🔍 Debug build outputs
         run: |

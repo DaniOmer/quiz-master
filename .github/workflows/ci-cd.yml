@@ -124,10 +124,25 @@ jobs:
         run: |
           pip install ansible docker
 
-      - name: 🔐 Setup SSH key
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: 🔐 Setup SSH keys
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Clé SSH pour le serveur frontend
+          echo "${{ secrets.FRONTEND_SSH_PRIVATE_KEY }}" > ~/.ssh/frontend_key
+          chmod 600 ~/.ssh/frontend_key
+
+          # Clé SSH pour le serveur backend
+          echo "${{ secrets.BACKEND_SSH_PRIVATE_KEY }}" > ~/.ssh/backend_key
+          chmod 600 ~/.ssh/backend_key
+
+          # Configuration SSH pour éviter la vérification des host keys
+          cat > ~/.ssh/config << EOF
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+          EOF
 
       - name: 🔐 Install doctl
         uses: digitalocean/action-doctl@v2

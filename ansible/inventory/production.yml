@@ -5,7 +5,7 @@ all:
         frontend-server:
           ansible_host: "{{ frontend_server_ip }}"
           ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          ansible_ssh_private_key_file: ~/.ssh/frontend_key
           server_type: frontend
 
     backend:
@@ -13,7 +13,7 @@ all:
         backend-server:
           ansible_host: "{{ backend_server_ip }}"
           ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          ansible_ssh_private_key_file: ~/.ssh/backend_key
           server_type: backend
 
     quiz_master:

@@ -7,7 +7,9 @@ WORKDIR /app
 
 # Copier les fichiers de dépendances
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+
+# Installer TOUTES les dépendances (production + dev) pour la compilation
+RUN npm ci
 
 # Build stage
 FROM base AS builder
@@ -16,21 +18,27 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Compiler TypeScript pour le backend
-RUN npm install -g tsx typescript
-RUN npx tsc server/index.ts --outDir dist --target es2020 --module commonjs --esModuleInterop --resolveJsonModule --declaration --strict
+RUN npx tsc --project tsconfig.server.json
+
+# Stage pour les dépendances de production seulement
+FROM base AS production-deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
 
 # Image de production
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 backend
 
-# Copier les dépendances et le code compilé
-COPY --from=deps --chown=backend:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=backend:nodejs /app/server ./server
+# Copier les dépendances de production et le code compilé
+COPY --from=production-deps --chown=backend:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=backend:nodejs /app/dist ./dist
 COPY --from=builder --chown=backend:nodejs /app/shared ./shared
 COPY --from=builder --chown=backend:nodejs /app/package.json ./
 
@@ -38,6 +46,6 @@ USER backend
 
 EXPOSE 8003
 
-ENV PORT 8003
+ENV PORT=8003
 
-CMD ["npm", "run", "dev:server"]
+CMD ["node", "dist/server/index.js"]

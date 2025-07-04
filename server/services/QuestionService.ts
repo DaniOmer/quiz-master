@@ -1,51 +1,51 @@
-import { GameSettings, Question } from '../../shared/types'
-import { v4 as uuidv4 } from 'uuid'
+import { GameSettings, Question } from "../../shared/types";
+import { v4 as uuidv4 } from "uuid";
 
 interface TriviaQuestion {
-  category: string
-  type: string
-  difficulty: string
-  question: string
-  correct_answer: string
-  incorrect_answers: string[]
+  category: string;
+  type: string;
+  difficulty: string;
+  question: string;
+  correct_answer: string;
+  incorrect_answers: string[];
 }
 
 interface TriviaResponse {
-  response_code: number
-  results: TriviaQuestion[]
+  response_code: number;
+  results: TriviaQuestion[];
 }
 
 interface QuizAPIQuestion {
-  id: number
-  question: string
-  description: string | null
+  id: number;
+  question: string;
+  description: string | null;
   answers: {
-    answer_a: string
-    answer_b: string
-    answer_c: string
-    answer_d: string
-    answer_e: string | null
-    answer_f: string | null
-  }
-  multiple_correct_answers: string
+    answer_a: string;
+    answer_b: string;
+    answer_c: string;
+    answer_d: string;
+    answer_e: string | null;
+    answer_f: string | null;
+  };
+  multiple_correct_answers: string;
   correct_answers: {
-    answer_a_correct: string
-    answer_b_correct: string
-    answer_c_correct: string
-    answer_d_correct: string
-    answer_e_correct: string
-    answer_f_correct: string
-  }
-  explanation: string | null
-  tip: string | null
-  tags: Array<{ name: string }>
-  category: string
-  difficulty: string
+    answer_a_correct: string;
+    answer_b_correct: string;
+    answer_c_correct: string;
+    answer_d_correct: string;
+    answer_e_correct: string;
+    answer_f_correct: string;
+  };
+  explanation: string | null;
+  tip: string | null;
+  tags: Array<{ name: string }>;
+  category: string;
+  difficulty: string;
 }
 
 interface QuizAPIResponse {
-  error?: string
-  results?: QuizAPIQuestion[]
+  error?: string;
+  results?: QuizAPIQuestion[];
 }
 
 export class QuestionService {
@@ -57,7 +57,7 @@ export class QuestionService {
       correctAnswer: "Paris",
       category: "Géographie",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -66,7 +66,7 @@ export class QuestionService {
       correctAnswer: "4",
       category: "Mathématiques",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -75,7 +75,7 @@ export class QuestionService {
       correctAnswer: "Leonardo da Vinci",
       category: "Art",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -84,7 +84,7 @@ export class QuestionService {
       correctAnswer: "Mercure",
       category: "Science",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -93,7 +93,7 @@ export class QuestionService {
       correctAnswer: "1789",
       category: "Histoire",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -102,16 +102,21 @@ export class QuestionService {
       correctAnswer: "Oxygène",
       category: "Science",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
       question: "Qui a écrit 'Les Misérables' ?",
-      options: ["Victor Hugo", "Émile Zola", "Gustave Flaubert", "Marcel Proust"],
+      options: [
+        "Victor Hugo",
+        "Émile Zola",
+        "Gustave Flaubert",
+        "Marcel Proust",
+      ],
       correctAnswer: "Victor Hugo",
       category: "Littérature",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -120,7 +125,7 @@ export class QuestionService {
       correctAnswer: "7",
       category: "Géographie",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -129,7 +134,7 @@ export class QuestionService {
       correctAnswer: "300 000 km/s",
       category: "Science",
       difficulty: "hard",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -138,7 +143,7 @@ export class QuestionService {
       correctAnswer: "Beethoven",
       category: "Musique",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -147,16 +152,17 @@ export class QuestionService {
       correctAnswer: "Pacifique",
       category: "Géographie",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
-      question: "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?",
+      question:
+        "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?",
       options: ["1967", "1969", "1971", "1973"],
       correctAnswer: "1969",
       category: "Histoire",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -165,16 +171,21 @@ export class QuestionService {
       correctAnswer: "H2O",
       category: "Science",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
       question: "Qui a inventé le téléphone ?",
-      options: ["Thomas Edison", "Alexander Graham Bell", "Nikola Tesla", "Benjamin Franklin"],
+      options: [
+        "Thomas Edison",
+        "Alexander Graham Bell",
+        "Nikola Tesla",
+        "Benjamin Franklin",
+      ],
       correctAnswer: "Alexander Graham Bell",
       category: "Histoire",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -183,7 +194,7 @@ export class QuestionService {
       correctAnswer: "6",
       category: "Mathématiques",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -192,16 +203,21 @@ export class QuestionService {
       correctAnswer: "Yen",
       category: "Culture générale",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
       question: "Qui a écrit '1984' ?",
-      options: ["George Orwell", "Aldous Huxley", "Ray Bradbury", "Isaac Asimov"],
+      options: [
+        "George Orwell",
+        "Aldous Huxley",
+        "Ray Bradbury",
+        "Isaac Asimov",
+      ],
       correctAnswer: "George Orwell",
       category: "Littérature",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -210,7 +226,7 @@ export class QuestionService {
       correctAnswer: "Mont Everest",
       category: "Géographie",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -219,7 +235,7 @@ export class QuestionService {
       correctAnswer: "11",
       category: "Sport",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -228,7 +244,7 @@ export class QuestionService {
       correctAnswer: "Chinois Mandarin",
       category: "Culture générale",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -237,7 +253,7 @@ export class QuestionService {
       correctAnswer: "Vatican",
       category: "Géographie",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -246,25 +262,35 @@ export class QuestionService {
       correctAnswer: "6",
       category: "Musique",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
       question: "Quelle est la devise de la France ?",
-      options: ["Liberté, Égalité, Fraternité", "Dieu et mon droit", "E pluribus unum", "In God we trust"],
+      options: [
+        "Liberté, Égalité, Fraternité",
+        "Dieu et mon droit",
+        "E pluribus unum",
+        "In God we trust",
+      ],
       correctAnswer: "Liberté, Égalité, Fraternité",
       category: "Culture générale",
       difficulty: "easy",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
       question: "Qui a développé la théorie de la relativité ?",
-      options: ["Isaac Newton", "Albert Einstein", "Galileo Galilei", "Stephen Hawking"],
+      options: [
+        "Isaac Newton",
+        "Albert Einstein",
+        "Galileo Galilei",
+        "Stephen Hawking",
+      ],
       correctAnswer: "Albert Einstein",
       category: "Science",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
     },
     {
       id: uuidv4(),
@@ -273,152 +299,168 @@ export class QuestionService {
       correctAnswer: "Nil",
       category: "Géographie",
       difficulty: "medium",
-      timeLimit: 30
-    }
-  ]
+      timeLimit: 30,
+    },
+  ];
 
   async getQuestions(settings: GameSettings): Promise<Question[]> {
-    console.log('Récupération des questions avec les paramètres:', settings)
-    
+    console.log("Récupération des questions avec les paramètres:", settings);
+
     try {
-      const triviaQuestions = await this.fetchFromTriviaAPI(settings)
+      const triviaQuestions = await this.fetchFromTriviaAPI(settings);
       if (triviaQuestions.length >= settings.questionCount) {
-        console.log(`✅ ${triviaQuestions.length} questions récupérées depuis Open Trivia DB`)
-        return triviaQuestions.slice(0, settings.questionCount)
+        console.log(
+          `✅ ${triviaQuestions.length} questions récupérées depuis Open Trivia DB`
+        );
+        return triviaQuestions.slice(0, settings.questionCount);
       }
 
-      const quizAPIQuestions = await this.fetchFromQuizAPI(settings)
+      const quizAPIQuestions = await this.fetchFromQuizAPI(settings);
       if (quizAPIQuestions.length >= settings.questionCount) {
-        console.log(`✅ ${quizAPIQuestions.length} questions récupérées depuis QuizAPI`)
-        return quizAPIQuestions.slice(0, settings.questionCount)
+        console.log(
+          `✅ ${quizAPIQuestions.length} questions récupérées depuis QuizAPI`
+        );
+        return quizAPIQuestions.slice(0, settings.questionCount);
       }
 
-      const combinedQuestions = [...triviaQuestions, ...quizAPIQuestions]
+      const combinedQuestions = [...triviaQuestions, ...quizAPIQuestions];
       if (combinedQuestions.length >= settings.questionCount) {
-        console.log(`✅ ${combinedQuestions.length} questions combinées des APIs`)
-        return combinedQuestions.slice(0, settings.questionCount)
+        console.log(
+          `✅ ${combinedQuestions.length} questions combinées des APIs`
+        );
+        return combinedQuestions.slice(0, settings.questionCount);
       }
-
     } catch (error) {
-      console.warn('❌ Erreur lors de la récupération depuis les APIs:', error)
+      console.warn("❌ Erreur lors de la récupération depuis les APIs:", error);
     }
 
-    console.log('📚 Utilisation des questions de fallback')
-    return this.getFallbackQuestions(settings)
+    console.log("📚 Utilisation des questions de fallback");
+    return this.getFallbackQuestions(settings);
   }
 
-  private async fetchFromTriviaAPI(settings: GameSettings): Promise<Question[]> {
+  private async fetchFromTriviaAPI(
+    settings: GameSettings
+  ): Promise<Question[]> {
     try {
-      const baseUrl = 'https://opentdb.com/api.php'
+      const baseUrl = "https://opentdb.com/api.php";
       const params = new URLSearchParams({
-        amount: Math.min(settings.questionCount, 50).toString(), 
-        type: 'multiple'
-      })
+        amount: Math.min(settings.questionCount, 50).toString(),
+        type: "multiple",
+      });
 
-      if (settings.category && settings.category !== 'any') {
-        params.append('category', settings.category)
+      if (settings.category && settings.category !== "any") {
+        params.append("category", settings.category);
       }
 
-      if (settings.difficulty && settings.difficulty !== 'mixed') {
-        params.append('difficulty', settings.difficulty)
+      if (settings.difficulty && settings.difficulty !== "mixed") {
+        params.append("difficulty", settings.difficulty);
       }
 
-      const url = `${baseUrl}?${params}`
-      console.log('🌐 Requête Open Trivia DB:', url)
+      const url = `${baseUrl}?${params}`;
+      console.log("🌐 Requête Open Trivia DB:", url);
 
-      const response = await fetch(url, { 
+      const response = await fetch(url, {
         headers: {
-          'User-Agent': 'QuizMaster/1.0'
-        }
-      })
-      
+          "User-Agent": "QuizMaster/1.0",
+        },
+      });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: TriviaResponse = await response.json()
+      const data = (await response.json()) as TriviaResponse;
 
       if (data.response_code !== 0) {
-        console.warn(`⚠️ Open Trivia DB error code: ${data.response_code}`)
-        return []
+        console.warn(`⚠️ Open Trivia DB error code: ${data.response_code}`);
+        return [];
       }
 
-      return data.results.map(q => this.transformTriviaQuestion(q, settings.timePerQuestion))
+      return data.results.map((q) =>
+        this.transformTriviaQuestion(q, settings.timePerQuestion)
+      );
     } catch (error) {
-      console.error('❌ Erreur Open Trivia DB:', error)
-      return []
+      console.error("❌ Erreur Open Trivia DB:", error);
+      return [];
     }
   }
 
   private async fetchFromQuizAPI(settings: GameSettings): Promise<Question[]> {
     try {
-      const baseUrl = 'https://quizapi.io/api/v1/questions'
+      const baseUrl = "https://quizapi.io/api/v1/questions";
       const params = new URLSearchParams({
-        limit: Math.min(settings.questionCount, 20).toString(), 
-      })
+        limit: Math.min(settings.questionCount, 20).toString(),
+      });
 
       const categoryMap: { [key: string]: string } = {
-        '9': 'general_knowledge',
-        '17': 'science',
-        '21': 'sport_and_leisure',
-        '22': 'geography',
-        '23': 'history',
-        '25': 'art_and_literature',
-        '27': 'animals'
+        "9": "general_knowledge",
+        "17": "science",
+        "21": "sport_and_leisure",
+        "22": "geography",
+        "23": "history",
+        "25": "art_and_literature",
+        "27": "animals",
+      };
+
+      if (
+        settings.category &&
+        settings.category !== "any" &&
+        categoryMap[settings.category]
+      ) {
+        params.append("category", categoryMap[settings.category]);
       }
 
-      if (settings.category && settings.category !== 'any' && categoryMap[settings.category]) {
-        params.append('category', categoryMap[settings.category])
+      if (settings.difficulty && settings.difficulty !== "mixed") {
+        params.append("difficulty", settings.difficulty);
       }
 
-      if (settings.difficulty && settings.difficulty !== 'mixed') {
-        params.append('difficulty', settings.difficulty)
-      }
+      const url = `${baseUrl}?${params}`;
+      console.log("🌐 Requête QuizAPI:", url);
 
-      const url = `${baseUrl}?${params}`
-      console.log('🌐 Requête QuizAPI:', url)
-
-      const response = await fetch(url, { 
+      const response = await fetch(url, {
         headers: {
-          'User-Agent': 'QuizMaster/1.0'
-        }
-      })
-      
+          "User-Agent": "QuizMaster/1.0",
+        },
+      });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: QuizAPIQuestion[] = await response.json()
+      const data = (await response.json()) as QuizAPIQuestion[];
 
       if (!Array.isArray(data)) {
-        console.warn('⚠️ QuizAPI: Réponse invalide')
-        return []
+        console.warn("⚠️ QuizAPI: Réponse invalide");
+        return [];
       }
 
       return data
-        .filter(q => q.multiple_correct_answers === 'false') 
-        .map(q => this.transformQuizAPIQuestion(q, settings.timePerQuestion))
-        .filter(q => q.options.length === 4) 
+        .filter((q) => q.multiple_correct_answers === "false")
+        .map((q) => this.transformQuizAPIQuestion(q, settings.timePerQuestion))
+        .filter((q) => q.options.length === 4);
     } catch (error) {
-      console.error('❌ Erreur QuizAPI:', error)
-      return []
+      console.error("❌ Erreur QuizAPI:", error);
+      return [];
     }
   }
 
-  private transformTriviaQuestion(triviaQ: TriviaQuestion, timeLimit: number): Question {
+  private transformTriviaQuestion(
+    triviaQ: TriviaQuestion,
+    timeLimit: number
+  ): Question {
     const decodeHtml = (html: string) => {
       return html
         .replace(/&quot;/g, '"')
         .replace(/&#039;/g, "'")
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&nbsp;/g, ' ')
-    }
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&nbsp;/g, " ");
+    };
 
     const options = [...triviaQ.incorrect_answers, triviaQ.correct_answer]
       .map(decodeHtml)
-      .sort(() => Math.random() - 0.5)
+      .sort(() => Math.random() - 0.5);
 
     return {
       id: uuidv4(),
@@ -426,102 +468,113 @@ export class QuestionService {
       options,
       correctAnswer: decodeHtml(triviaQ.correct_answer),
       category: decodeHtml(triviaQ.category),
-      difficulty: triviaQ.difficulty as 'easy' | 'medium' | 'hard',
-      timeLimit
-    }
+      difficulty: triviaQ.difficulty as "easy" | "medium" | "hard",
+      timeLimit,
+    };
   }
 
-  private transformQuizAPIQuestion(quizQ: QuizAPIQuestion, timeLimit: number): Question {
+  private transformQuizAPIQuestion(
+    quizQ: QuizAPIQuestion,
+    timeLimit: number
+  ): Question {
     const answers = Object.entries(quizQ.answers)
-      .filter(([_, value]) => value !== null && value.trim() !== '')
-      .map(([_, value]) => value as string)
+      .filter(([_, value]) => value !== null && value.trim() !== "")
+      .map(([_, value]) => value as string);
 
-    const correctAnswerKey = Object.entries(quizQ.correct_answers)
-      .find(([_, value]) => value === 'true')?.[0]
-    
+    const correctAnswerKey = Object.entries(quizQ.correct_answers).find(
+      ([_, value]) => value === "true"
+    )?.[0];
+
     if (!correctAnswerKey) {
-      throw new Error('Pas de bonne réponse trouvée')
+      throw new Error("Pas de bonne réponse trouvée");
     }
 
-    const answerKey = correctAnswerKey.replace('_correct', '') as keyof typeof quizQ.answers
-    const correctAnswer = quizQ.answers[answerKey]
+    const answerKey = correctAnswerKey.replace(
+      "_correct",
+      ""
+    ) as keyof typeof quizQ.answers;
+    const correctAnswer = quizQ.answers[answerKey];
 
     if (!correctAnswer) {
-      throw new Error('Bonne réponse invalide')
+      throw new Error("Bonne réponse invalide");
     }
 
-    const options = answers.sort(() => Math.random() - 0.5)
+    const options = answers.sort(() => Math.random() - 0.5);
 
     return {
       id: uuidv4(),
       question: quizQ.question,
       options,
       correctAnswer,
-      category: quizQ.category || 'Général',
-      difficulty: (quizQ.difficulty || 'medium') as 'easy' | 'medium' | 'hard',
-      timeLimit
-    }
+      category: quizQ.category || "Général",
+      difficulty: (quizQ.difficulty || "medium") as "easy" | "medium" | "hard",
+      timeLimit,
+    };
   }
 
   private getFallbackQuestions(settings: GameSettings): Question[] {
-    let questions = [...this.fallbackQuestions]
+    let questions = [...this.fallbackQuestions];
 
-    if (settings.difficulty && settings.difficulty !== 'mixed') {
-      questions = questions.filter(q => q.difficulty === settings.difficulty)
+    if (settings.difficulty && settings.difficulty !== "mixed") {
+      questions = questions.filter((q) => q.difficulty === settings.difficulty);
     }
 
-    questions = questions.sort(() => Math.random() - 0.5)
+    questions = questions.sort(() => Math.random() - 0.5);
 
-    const selectedQuestions = questions.slice(0, settings.questionCount)
+    const selectedQuestions = questions.slice(0, settings.questionCount);
 
     while (selectedQuestions.length < settings.questionCount) {
-      const remaining = settings.questionCount - selectedQuestions.length
-      const toAdd = questions.slice(0, remaining)
-      selectedQuestions.push(...toAdd.map(q => ({ ...q, id: uuidv4() })))
+      const remaining = settings.questionCount - selectedQuestions.length;
+      const toAdd = questions.slice(0, remaining);
+      selectedQuestions.push(...toAdd.map((q) => ({ ...q, id: uuidv4() })));
     }
 
-    return selectedQuestions.map(q => ({
+    return selectedQuestions.map((q) => ({
       ...q,
-      timeLimit: settings.timePerQuestion
-    }))
+      timeLimit: settings.timePerQuestion,
+    }));
   }
 
-  addCustomQuestions(questions: Omit<Question, 'id'>[]): void {
-    const questionsWithId = questions.map(q => ({
+  addCustomQuestions(questions: Omit<Question, "id">[]): void {
+    const questionsWithId = questions.map((q) => ({
       ...q,
-      id: uuidv4()
-    }))
-    this.fallbackQuestions.push(...questionsWithId)
+      id: uuidv4(),
+    }));
+    this.fallbackQuestions.push(...questionsWithId);
   }
 
   getAvailableCategories(): { id: string; name: string }[] {
     return [
-      { id: 'any', name: 'Toutes catégories' },
-      { id: '9', name: 'Culture générale' },
-      { id: '17', name: 'Science & Nature' },
-      { id: '21', name: 'Sports' },
-      { id: '22', name: 'Géographie' },
-      { id: '23', name: 'Histoire' },
-      { id: '24', name: 'Politique' },
-      { id: '25', name: 'Art & Littérature' },
-      { id: '26', name: 'Célébrités' },
-      { id: '27', name: 'Animaux' },
-    ]
+      { id: "any", name: "Toutes catégories" },
+      { id: "9", name: "Culture générale" },
+      { id: "17", name: "Science & Nature" },
+      { id: "21", name: "Sports" },
+      { id: "22", name: "Géographie" },
+      { id: "23", name: "Histoire" },
+      { id: "24", name: "Politique" },
+      { id: "25", name: "Art & Littérature" },
+      { id: "26", name: "Célébrités" },
+      { id: "27", name: "Animaux" },
+    ];
   }
 
-  getQuestionStats(): { total: number; byCategory: { [key: string]: number }; byDifficulty: { [key: string]: number } } {
-    const byCategory: { [key: string]: number } = {}
-    const byDifficulty: { [key: string]: number } = {}
+  getQuestionStats(): {
+    total: number;
+    byCategory: { [key: string]: number };
+    byDifficulty: { [key: string]: number };
+  } {
+    const byCategory: { [key: string]: number } = {};
+    const byDifficulty: { [key: string]: number } = {};
 
-    this.fallbackQuestions.forEach(q => {
-      byCategory[q.category] = (byCategory[q.category] || 0) + 1
-      byDifficulty[q.difficulty] = (byDifficulty[q.difficulty] || 0) + 1
-    })
+    this.fallbackQuestions.forEach((q) => {
+      byCategory[q.category] = (byCategory[q.category] || 0) + 1;
+      byDifficulty[q.difficulty] = (byDifficulty[q.difficulty] || 0) + 1;
+    });
 
     return {
       total: this.fallbackQuestions.length,
       byCategory,
-      byDifficulty
-    }
+      byDifficulty,
+    };
   }
 }

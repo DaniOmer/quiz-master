@@ -26,6 +26,7 @@
           - Registry: {{ registry }}/{{ registry_name }}
           - Target: {{ inventory_hostname }}
           - Type: {{ server_type }}
+          - Current Image: {{ frontend_image if server_type == 'frontend' else backend_image }}
 
   tasks:
     - name: 🔐 Install doctl
@@ -45,9 +46,17 @@
 
     - name: 🔐 Login to Digital Ocean Container Registry
       shell: |
+        set -e
+        echo "Authenticating with Digital Ocean Registry..."
         echo "{{ do_pat }}" | /usr/local/bin/doctl auth init --access-token -
         /usr/local/bin/doctl registry login
-      no_log: true
+        echo "Registry login successful"
+      no_log: false
+      register: registry_login_result
+
+    - name: 📊 Display registry login result
+      debug:
+        var: registry_login_result.stdout_lines
 
     - name: 🛑 Stop existing containers
       community.docker.docker_compose_v2:
@@ -83,12 +92,10 @@
 
     - name: 🎯 Pull latest images
       docker_image:
-        name: "{{ item }}"
+        name: "{{ frontend_image if server_type == 'frontend' else backend_image }}"
         source: pull
         force_source: yes
-      loop:
-        - "{{ frontend_image }}"
-        - "{{ backend_image }}"
+      when: (server_type == 'frontend' and frontend_image != '') or (server_type == 'backend' and backend_image != '')
 
     - name: 🚀 Start application
       community.docker.docker_compose_v2:

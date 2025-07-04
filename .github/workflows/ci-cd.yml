@@ -49,8 +49,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     outputs:
-      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
-      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      frontend-image: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_FRONTEND }}:latest
+      backend-image: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_BACKEND }}:latest
 
     steps:
       - name: 📥 Checkout code
@@ -169,10 +169,20 @@ jobs:
         with:
           token: ${{ secrets.DO_PAT }}
 
+      - name: 🔍 Debug environment variables
+        run: |
+          echo "=== Debug Info ==="
+          echo "REGISTRY: $REGISTRY"
+          echo "REGISTRY_NAME: $REGISTRY_NAME"
+          echo "FRONTEND_IMAGE: $FRONTEND_IMAGE"
+          echo "BACKEND_IMAGE: $BACKEND_IMAGE"
+          echo "DO_PAT: [HIDDEN]"
+          echo "=================="
+
       - name: 🚀 Deploy with Ansible
         run: |
           cd ansible
-          ansible-playbook -i inventory/production.yml deploy.yml
+          ansible-playbook -i inventory/production.yml deploy.yml -v
         env:
           REGISTRY: ${{ env.REGISTRY }}
           REGISTRY_NAME: ${{ env.REGISTRY_NAME }}

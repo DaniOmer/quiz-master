@@ -1,73 +1,81 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { CreateRoomDialog } from '@/components/quiz/CreateRoomDialog'
-import { JoinRoomDialog } from '@/components/quiz/JoinRoomDialog'
-import { WaitingRoom } from '@/components/quiz/WaitingRoom'
-import { GameScreen } from '@/components/quiz/GameScreen'
-import { ResultsScreen } from '@/components/quiz/ResultsScreen'
-import { useSocket } from '@/store/useSocket'
-import { 
-  Users, 
-  Zap, 
-  Trophy, 
-  Clock, 
-  Gamepad2, 
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { CreateRoomDialog } from "@/components/quiz/CreateRoomDialog";
+import { JoinRoomDialog } from "@/components/quiz/JoinRoomDialog";
+import { WaitingRoom } from "@/components/quiz/WaitingRoom";
+import { GameScreen } from "@/components/quiz/GameScreen";
+import { ResultsScreen } from "@/components/quiz/ResultsScreen";
+import { useSocket } from "@/store/useSocket";
+import {
+  Users,
+  Zap,
+  Trophy,
+  Clock,
+  Gamepad2,
   Sparkles,
   Play,
-  UserPlus
-} from 'lucide-react'
+  UserPlus,
+} from "lucide-react";
 
 export default function HomePage() {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [joinDialogOpen, setJoinDialogOpen] = useState(false)
-  const { connect, isConnected, currentRoom, gameState } = useSocket()
-  const router = useRouter()
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const { connect, isConnected, currentRoom, gameState } = useSocket();
 
   useEffect(() => {
-    connect()
-  }, [connect])
+    connect();
+  }, [connect]);
 
   // Si on est dans une salle, afficher les composants de jeu directement
   if (currentRoom) {
     // Déterminer quel écran afficher
-    if (currentRoom.isGameFinished || (gameState?.showResults && gameState.currentQuestionIndex >= currentRoom.questions.length)) {
-      return <ResultsScreen />
+    if (
+      currentRoom.isGameFinished ||
+      (gameState?.showResults &&
+        gameState.currentQuestionIndex >= currentRoom.questions.length)
+    ) {
+      return <ResultsScreen />;
     }
 
     if (currentRoom.isGameStarted && gameState) {
-      return <GameScreen />
+      return <GameScreen />;
     }
 
-    return <WaitingRoom />
+    return <WaitingRoom />;
   }
 
   const features = [
     {
       icon: Users,
       title: "Multijoueur",
-      description: "Jusqu'à 10 joueurs simultanément"
+      description: "Jusqu'à 10 joueurs simultanément",
     },
     {
       icon: Zap,
       title: "Temps Réel",
-      description: "Synchronisation instantanée"
+      description: "Synchronisation instantanée",
     },
     {
       icon: Trophy,
       title: "Classements",
-      description: "Scores et podium en direct"
+      description: "Scores et podium en direct",
     },
     {
       icon: Clock,
       title: "Chronomètre",
-      description: "Questions chronométrées"
-    }
-  ]
+      description: "Questions chronométrées",
+    },
+  ];
 
   return (
     <div className="min-h-screen">
@@ -82,15 +90,13 @@ export default function HomePage() {
           >
             <div className="flex items-center justify-center mb-6">
               <Gamepad2 className="h-16 w-16 text-blue-600 mr-4" />
-              <h1 className="text-6xl font-bold gradient-text">
-                QuizMaster
-              </h1>
+              <h1 className="text-6xl font-bold gradient-text">QuizMaster</h1>
             </div>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Créez et participez à des quiz multijoueur en temps réel avec vos amis. 
-              Testez vos connaissances et amusez-vous ensemble !
+              Créez et participez à des quiz multijoueur en temps réel avec vos
+              amis. Testez vos connaissances et amusez-vous ensemble !
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Button
                 size="lg"
@@ -101,7 +107,7 @@ export default function HomePage() {
                 <Play className="mr-2 h-5 w-5" />
                 Créer un Quiz
               </Button>
-              
+
               <Button
                 size="lg"
                 variant="outline"
@@ -197,18 +203,19 @@ export default function HomePage() {
               {
                 step: "1",
                 title: "Créez ou Rejoignez",
-                description: "Créez une nouvelle salle ou rejoignez avec un code"
+                description:
+                  "Créez une nouvelle salle ou rejoignez avec un code",
               },
               {
                 step: "2",
                 title: "Invitez vos Amis",
-                description: "Partagez le code, QR code ou lien d'invitation"
+                description: "Partagez le code, QR code ou lien d'invitation",
               },
               {
                 step: "3",
                 title: "Jouez Ensemble",
-                description: "Répondez aux questions et voyez qui gagne !"
-              }
+                description: "Répondez aux questions et voyez qui gagne !",
+              },
             ].map((item, index) => (
               <motion.div
                 key={item.step}
@@ -239,9 +246,7 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <Sparkles className="h-16 w-16 mx-auto mb-6" />
-            <h2 className="text-4xl font-bold mb-4">
-              Prêt à commencer ?
-            </h2>
+            <h2 className="text-4xl font-bold mb-4">Prêt à commencer ?</h2>
             <p className="text-xl mb-8 opacity-90">
               Créez votre premier quiz maintenant et défiez vos amis !
             </p>
@@ -259,14 +264,11 @@ export default function HomePage() {
       </section>
 
       {/* Dialogs */}
-      <CreateRoomDialog 
-        open={createDialogOpen} 
-        onOpenChange={setCreateDialogOpen} 
+      <CreateRoomDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
       />
-      <JoinRoomDialog 
-        open={joinDialogOpen} 
-        onOpenChange={setJoinDialogOpen} 
-      />
+      <JoinRoomDialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen} />
     </div>
-  )
+  );
 }

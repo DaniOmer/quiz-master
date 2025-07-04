@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PlayerAvatar } from '@/components/ui/player-avatar'
-import { useSocket } from '@/store/useSocket'
-import { copyToClipboard, shareContent } from '@/lib/utils'
-import { 
-  Users, 
-  Copy, 
-  Share2, 
-  QrCode, 
-  Crown, 
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
+import { useSocket } from "@/store/useSocket";
+import { copyToClipboard, shareContent } from "@/lib/utils";
+import {
+  Users,
+  Copy,
+  Share2,
+  QrCode,
+  Crown,
   Settings,
   Play,
   Clock,
@@ -20,36 +20,39 @@ import {
   Target,
   Sparkles,
   Zap,
-  Trophy
-} from 'lucide-react'
-import toast from 'react-hot-toast'
-import QRCodeLib from 'qrcode'
+  Trophy,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import QRCodeLib from "qrcode";
+import Image from "next/image";
 
 export function WaitingRoom() {
-  const { 
-    currentRoom, 
-    currentPlayer, 
-    startGame, 
-    leaveRoom,
-    isLoading 
-  } = useSocket()
-  
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
-  const [showQrCode, setShowQrCode] = useState(false)
+  const { currentRoom, currentPlayer, startGame, leaveRoom, isLoading } =
+    useSocket();
+
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [showQrCode, setShowQrCode] = useState(false);
 
   useEffect(() => {
     if (currentRoom) {
-      const roomUrl = `${window.location.origin}/room/${currentRoom.code}`
-      QRCodeLib.toDataURL(roomUrl, {
+      const roomUrl = `${window.location.origin}/room/${currentRoom.code}`;
+      const qrOptions = {
         width: 256,
         margin: 2,
         color: {
-          dark: '#1f2937',
-          light: '#ffffff'
-        }
-      }).then(setQrCodeUrl)
+          dark: "#1f2937",
+          light: "#ffffff",
+        },
+      };
+      QRCodeLib.toDataURL(roomUrl, qrOptions)
+        .then((url) => {
+          setQrCodeUrl(url);
+        })
+        .catch((err) => {
+          console.error("Error generating QR code:", err);
+        });
     }
-  }, [currentRoom])
+  }, [currentRoom]);
 
   if (!currentRoom || !currentPlayer) {
     return (
@@ -63,53 +66,53 @@ export function WaitingRoom() {
           <p className="text-gray-600">Chargement de la salle...</p>
         </motion.div>
       </div>
-    )
+    );
   }
 
-  const isHost = currentPlayer.isHost
-  const canStartGame = isHost && currentRoom.players.length >= 2
-  const roomUrl = `${window.location.origin}/room/${currentRoom.code}`
+  const isHost = currentPlayer.isHost;
+  const canStartGame = isHost && currentRoom.players.length >= 2;
+  const roomUrl = `${window.location.origin}/room/${currentRoom.code}`;
 
   const handleCopyCode = async () => {
-    const success = await copyToClipboard(currentRoom.code)
+    const success = await copyToClipboard(currentRoom.code);
     if (success) {
-      toast.success('Code copié dans le presse-papiers!')
+      toast.success("Code copié dans le presse-papiers!");
     } else {
-      toast.error('Impossible de copier le code')
+      toast.error("Impossible de copier le code");
     }
-  }
+  };
 
   const handleCopyLink = async () => {
-    const success = await copyToClipboard(roomUrl)
+    const success = await copyToClipboard(roomUrl);
     if (success) {
-      toast.success('Lien copié dans le presse-papiers!')
+      toast.success("Lien copié dans le presse-papiers!");
     } else {
-      toast.error('Impossible de copier le lien')
+      toast.error("Impossible de copier le lien");
     }
-  }
+  };
 
   const handleShare = async () => {
     const success = await shareContent({
-      title: 'Rejoignez mon quiz QuizMaster!',
+      title: "Rejoignez mon quiz QuizMaster!",
       text: `Code: ${currentRoom.code}`,
-      url: roomUrl
-    })
-    
+      url: roomUrl,
+    });
+
     if (!success) {
-      handleCopyLink()
+      handleCopyLink();
     }
-  }
+  };
 
   const handleStartGame = () => {
     if (canStartGame) {
-      startGame()
+      startGame();
     }
-  }
+  };
 
   const handleLeaveRoom = () => {
-    leaveRoom()
-    window.location.href = '/'
-  }
+    leaveRoom();
+    window.location.href = "/";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
@@ -129,8 +132,8 @@ export function WaitingRoom() {
             >
               <Sparkles className="h-8 w-8 text-purple-600" />
             </motion.div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Salle d'Attente
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Salle d&apos;Attente
             </h1>
             <motion.div
               animate={{ rotate: -360 }}
@@ -140,14 +143,11 @@ export function WaitingRoom() {
               <Zap className="h-8 w-8 text-yellow-500" />
             </motion.div>
           </div>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-xl text-gray-600"
-          >
-            {isHost ? "Invitez vos amis et démarrez le quiz !" : "En attente que l'hôte démarre le quiz..."}
-          </motion.p>
+          <p className="text-gray-600 mb-8">
+            {isHost
+              ? "Invitez vos amis et démarrez le quiz !"
+              : "En attente que l&apos;hôte démarre le quiz..."}
+          </p>
         </motion.div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
@@ -179,9 +179,12 @@ export function WaitingRoom() {
                       Code de la salle
                     </p>
                   </motion.div>
-                  
+
                   <div className="grid grid-cols-3 gap-2">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
                       <Button
                         variant="outline"
                         size="sm"
@@ -191,7 +194,10 @@ export function WaitingRoom() {
                         <Copy className="h-4 w-4" />
                       </Button>
                     </motion.div>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
                       <Button
                         variant="outline"
                         size="sm"
@@ -201,7 +207,10 @@ export function WaitingRoom() {
                         <QrCode className="h-4 w-4" />
                       </Button>
                     </motion.div>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
                       <Button
                         variant="outline"
                         size="sm"
@@ -224,9 +233,11 @@ export function WaitingRoom() {
                       className="text-center overflow-hidden"
                     >
                       <div className="bg-white p-4 rounded-xl shadow-lg inline-block">
-                        <img 
-                          src={qrCodeUrl} 
-                          alt="QR Code" 
+                        <Image
+                          src={qrCodeUrl}
+                          alt="QR Code"
+                          width={256}
+                          height={256}
                           className="mx-auto rounded-lg"
                         />
                         <p className="text-xs text-gray-500 mt-2">
@@ -240,10 +251,30 @@ export function WaitingRoom() {
                 {/* Paramètres avec icônes colorées */}
                 <div className="space-y-4 pt-4 border-t border-gray-200">
                   {[
-                    { icon: Users, label: "Joueurs max", value: currentRoom.settings.maxPlayers, color: "text-blue-600" },
-                    { icon: Hash, label: "Questions", value: currentRoom.settings.questionCount, color: "text-green-600" },
-                    { icon: Clock, label: "Temps/question", value: `${currentRoom.settings.timePerQuestion}s`, color: "text-orange-600" },
-                    { icon: Target, label: "Difficulté", value: currentRoom.settings.difficulty, color: "text-purple-600" }
+                    {
+                      icon: Users,
+                      label: "Joueurs max",
+                      value: currentRoom.settings.maxPlayers,
+                      color: "text-blue-600",
+                    },
+                    {
+                      icon: Hash,
+                      label: "Questions",
+                      value: currentRoom.settings.questionCount,
+                      color: "text-green-600",
+                    },
+                    {
+                      icon: Clock,
+                      label: "Temps/question",
+                      value: `${currentRoom.settings.timePerQuestion}s`,
+                      color: "text-orange-600",
+                    },
+                    {
+                      icon: Target,
+                      label: "Difficulté",
+                      value: currentRoom.settings.difficulty,
+                      color: "text-purple-600",
+                    },
                   ].map((item, index) => (
                     <motion.div
                       key={item.label}
@@ -256,7 +287,9 @@ export function WaitingRoom() {
                         <item.icon className={`mr-3 h-4 w-4 ${item.color}`} />
                         {item.label}
                       </span>
-                      <span className="font-semibold text-gray-900">{item.value}</span>
+                      <span className="font-semibold text-gray-900">
+                        {item.value}
+                      </span>
                     </motion.div>
                   ))}
                 </div>
@@ -276,7 +309,8 @@ export function WaitingRoom() {
                 <CardTitle className="flex items-center justify-between text-lg">
                   <span className="flex items-center">
                     <Users className="mr-2 h-5 w-5" />
-                    Joueurs ({currentRoom.players.length}/{currentRoom.settings.maxPlayers})
+                    Joueurs ({currentRoom.players.length}/
+                    {currentRoom.settings.maxPlayers})
                   </span>
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
@@ -295,21 +329,21 @@ export function WaitingRoom() {
                         initial={{ opacity: 0, scale: 0.8, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                        transition={{ 
+                        transition={{
                           delay: index * 0.1,
                           duration: 0.4,
                           type: "spring",
-                          stiffness: 100
+                          stiffness: 100,
                         }}
-                        whileHover={{ 
+                        whileHover={{
                           scale: 1.02,
                           y: -2,
-                          transition: { duration: 0.2 }
+                          transition: { duration: 0.2 },
                         }}
                         className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${
                           player.id === currentPlayer.id
-                            ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg'
-                            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+                            ? "border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg"
+                            : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                         }`}
                       >
                         {/* Badge "Vous" animé */}
@@ -331,7 +365,7 @@ export function WaitingRoom() {
                             isOnline={true}
                             showBorder={player.id === currentPlayer.id}
                           />
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
                               <span className="font-semibold text-gray-900 truncate">
@@ -353,7 +387,7 @@ export function WaitingRoom() {
                                   Organisateur
                                 </span>
                               ) : (
-                                'Participant'
+                                "Participant"
                               )}
                             </div>
                           </div>
@@ -372,19 +406,20 @@ export function WaitingRoom() {
                     className="text-center py-12"
                   >
                     <motion.div
-                      animate={{ 
+                      animate={{
                         scale: [1, 1.1, 1],
-                        rotate: [0, 5, -5, 0]
+                        rotate: [0, 5, -5, 0],
                       }}
                       transition={{ duration: 3, repeat: Infinity }}
                     >
                       <Users className="h-20 w-20 text-gray-300 mx-auto mb-4" />
                     </motion.div>
-                    <p className="text-gray-500 text-lg">
-                      En attente d'au moins 2 joueurs pour commencer...
+                    <p className="text-center text-gray-600 mt-4">
+                      En attente d&apos;au moins 2 joueurs pour commencer...
                     </p>
                     <p className="text-gray-400 text-sm mt-2">
-                      Partagez le code <strong>{currentRoom.code}</strong> avec vos amis !
+                      Partagez le code <strong>{currentRoom.code}</strong> avec
+                      vos amis !
                     </p>
                   </motion.div>
                 )}
@@ -409,26 +444,30 @@ export function WaitingRoom() {
               Quitter la salle
             </Button>
           </motion.div>
-          
+
           {isHost && (
-            <motion.div 
-              whileHover={{ scale: canStartGame ? 1.05 : 1 }} 
+            <motion.div
+              whileHover={{ scale: canStartGame ? 1.05 : 1 }}
               whileTap={{ scale: canStartGame ? 0.95 : 1 }}
             >
               <Button
                 onClick={handleStartGame}
                 disabled={!canStartGame || isLoading}
                 className={`px-10 py-4 text-lg font-semibold rounded-xl shadow-lg transition-all duration-300 ${
-                  canStartGame 
-                    ? 'bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white hover:shadow-xl' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  canStartGame
+                    ? "bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white hover:shadow-xl"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
                 {isLoading ? (
                   <div className="flex items-center">
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                       className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-3"
                     />
                     Démarrage...
@@ -460,14 +499,16 @@ export function WaitingRoom() {
                 <Crown className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
               </motion.div>
               <p className="text-gray-700">
-                Attendez que <strong className="text-purple-600">
-                  {currentRoom.players.find(p => p.isHost)?.name}
-                </strong> démarre le quiz
+                Attendez que{" "}
+                <strong className="text-purple-600">
+                  {currentRoom.players.find((p) => p.isHost)?.name}
+                </strong>{" "}
+                démarre le quiz
               </p>
             </div>
           </motion.div>
         )}
       </div>
     </div>
-  )
+  );
 }

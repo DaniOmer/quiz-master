@@ -1,122 +1,113 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { useSocket } from '@/store/useSocket'
-import { 
-  Clock, 
-  Users, 
-  Trophy, 
-  CheckCircle, 
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useSocket } from "@/store/useSocket";
+import {
+  Users,
+  Trophy,
+  CheckCircle,
   XCircle,
   Zap,
   Target,
   Star,
-  Timer,
   Brain,
-  AlertCircle,
-  Eye
-} from 'lucide-react'
-import { PlayerAvatar } from '@/components/ui/player-avatar'
+  Eye,
+} from "lucide-react";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
 
 export function GameScreen() {
-  const { 
-    currentRoom, 
-    gameState, 
-    currentPlayer, 
-    submitAnswer, 
-    isLoading 
-  } = useSocket()
-  
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [hasAnswered, setHasAnswered] = useState(false)
-  const [timeProgress, setTimeProgress] = useState(100)
-  const [showCorrection, setShowCorrection] = useState(false)
+  const { currentRoom, gameState, currentPlayer, submitAnswer, isLoading } =
+    useSocket();
+
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  const [timeProgress, setTimeProgress] = useState(100);
+  const [showCorrection, setShowCorrection] = useState(false);
 
   useEffect(() => {
     if (gameState?.timeRemaining && gameState.currentQuestion) {
-      const totalTime = gameState.currentQuestion.timeLimit || 30
-      const progress = (gameState.timeRemaining / totalTime) * 100
-      setTimeProgress(progress)
+      const totalTime = gameState.currentQuestion.timeLimit || 30;
+      const progress = (gameState.timeRemaining / totalTime) * 100;
+      setTimeProgress(progress);
     }
-  }, [gameState?.timeRemaining, gameState?.currentQuestion])
+  }, [gameState?.timeRemaining, gameState?.currentQuestion]);
 
   useEffect(() => {
     if (gameState?.isQuestionActive && !gameState.showResults) {
-      setSelectedAnswer(null)
-      setHasAnswered(false)
-      setShowCorrection(false)
+      setSelectedAnswer(null);
+      setHasAnswered(false);
+      setShowCorrection(false);
     }
-  }, [gameState?.currentQuestionIndex])
+  }, [
+    gameState?.currentQuestionIndex,
+    gameState?.isQuestionActive,
+    gameState?.showResults,
+  ]);
 
   useEffect(() => {
     if (gameState?.showResults && gameState.correctAnswer && hasAnswered) {
-      setShowCorrection(true)
+      setShowCorrection(true);
     }
-  }, [gameState?.showResults, gameState?.correctAnswer, hasAnswered])
+  }, [gameState?.showResults, gameState?.correctAnswer, hasAnswered]);
 
   const handleAnswerSelect = (answer: string) => {
-    if (hasAnswered || !gameState?.isQuestionActive) return
-    
-    setSelectedAnswer(answer)
-    setHasAnswered(true)
-    submitAnswer(answer)
-  }
+    if (hasAnswered || !gameState?.isQuestionActive) return;
+
+    setSelectedAnswer(answer);
+    setHasAnswered(true);
+    submitAnswer(answer);
+  };
 
   const getAnswerButtonStyle = (answer: string) => {
     if (showCorrection && gameState?.correctAnswer) {
-      const isCorrect = answer === gameState.correctAnswer
-      const isSelected = answer === selectedAnswer
-      
+      const isCorrect = answer === gameState.correctAnswer;
+      const isSelected = answer === selectedAnswer;
+
       if (isCorrect) {
-        return "bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 shadow-xl transform scale-105"
+        return "bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 shadow-xl transform scale-105";
       } else if (isSelected && !isCorrect) {
-        return "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-xl"
+        return "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-xl";
       } else {
-        return "bg-gray-100 text-gray-700 border-gray-200 opacity-60"
+        return "bg-gray-100 text-gray-700 border-gray-200 opacity-60";
       }
     }
 
     if (hasAnswered) {
-      return selectedAnswer === answer 
-        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-xl transform scale-105" 
-        : "bg-gray-100 text-gray-700 border-gray-200 opacity-60"
+      return selectedAnswer === answer
+        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-xl transform scale-105"
+        : "bg-gray-100 text-gray-700 border-gray-200 opacity-60";
     }
 
-    return selectedAnswer === answer 
-      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-xl transform scale-105" 
-      : "bg-white hover:bg-blue-50 text-gray-900 border-gray-200 hover:border-blue-300 hover:shadow-lg"
-  }
+    return selectedAnswer === answer
+      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-xl transform scale-105"
+      : "bg-white hover:bg-blue-50 text-gray-900 border-gray-200 hover:border-blue-300 hover:shadow-lg";
+  };
 
   const getAnswerIcon = (answer: string) => {
-    if (!showCorrection || !gameState?.correctAnswer) return null
-    
-    const isCorrect = answer === gameState.correctAnswer
-    const isSelected = answer === selectedAnswer
-    
+    if (!showCorrection || !gameState?.correctAnswer) return null;
+
+    const isCorrect = answer === gameState.correctAnswer;
+    const isSelected = answer === selectedAnswer;
+
     if (isCorrect) {
-      return <CheckCircle className="h-6 w-6" />
+      return <CheckCircle className="h-6 w-6" />;
     } else if (isSelected && !isCorrect) {
-      return <XCircle className="h-6 w-6" />
+      return <XCircle className="h-6 w-6" />;
     }
-    
-    return null
-  }
+
+    return null;
+  };
 
   const getTimeColor = () => {
-    if (gameState?.timeRemaining && gameState.timeRemaining <= 10) return "text-orange-500"
-    if (timeProgress > 60) return "text-green-500"
-    if (timeProgress > 30) return "text-yellow-500"
-    return "text-red-500"
-  }
-
-  const getProgressColor = () => {
-    if (timeProgress > 60) return "from-green-400 to-green-500"
-    if (timeProgress > 30) return "from-yellow-400 to-yellow-500"
-    return "from-red-400 to-red-500"
-  }
+    if (gameState?.timeRemaining && gameState.timeRemaining <= 10)
+      return "text-orange-500";
+    if (timeProgress > 60) return "text-green-500";
+    if (timeProgress > 30) return "text-yellow-500";
+    return "text-red-500";
+  };
 
   if (!currentRoom || !gameState || !gameState.currentQuestion) {
     return (
@@ -127,24 +118,27 @@ export function GameScreen() {
           className="w-16 h-16 border-4 border-white border-t-transparent rounded-full"
         />
       </div>
-    )
+    );
   }
 
-  const currentQuestion = gameState.currentQuestion
-  const questionNumber = (gameState.currentQuestionIndex || 0) + 1
-  const totalQuestions = currentRoom.settings.questionCount
+  const currentQuestion = gameState.currentQuestion;
+  const questionNumber = (gameState.currentQuestionIndex || 0) + 1;
+  const totalQuestions = currentRoom.settings.questionCount;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5" />
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
-        }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: "60px 60px",
+          }}
+        />
       </div>
-      
+
       <div className="relative z-10 p-4 max-w-6xl mx-auto">
         {/* Joueur actuel */}
         <motion.div
@@ -153,8 +147,8 @@ export function GameScreen() {
           className="mb-6"
         >
           <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30 inline-flex items-center space-x-4">
-            <PlayerAvatar 
-              name={currentPlayer?.name || ''} 
+            <PlayerAvatar
+              name={currentPlayer?.name || ""}
               size="md"
               isHost={currentPlayer?.isHost || false}
               showBorder={true}
@@ -164,7 +158,7 @@ export function GameScreen() {
                 {currentPlayer?.name}
               </p>
               <p className="text-white/70 text-sm">
-                {currentPlayer?.isHost ? 'Organisateur' : 'Participant'}
+                {currentPlayer?.isHost ? "Organisateur" : "Participant"}
               </p>
             </div>
           </div>
@@ -190,7 +184,7 @@ export function GameScreen() {
                 </span>
               </div>
             </motion.div>
-            
+
             <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-3 border border-white/30">
               <div className="flex items-center space-x-3">
                 <Users className="h-5 w-5 text-white/80" />
@@ -203,11 +197,14 @@ export function GameScreen() {
 
           {/* Timer circulaire */}
           <motion.div
-            animate={{ 
+            animate={{
               scale: timeProgress < 10 ? [1, 1.1, 1] : 1,
-              rotate: timeProgress < 5 ? [0, 5, -5, 0] : 0
+              rotate: timeProgress < 5 ? [0, 5, -5, 0] : 0,
             }}
-            transition={{ duration: 0.5, repeat: timeProgress < 10 ? Infinity : 0 }}
+            transition={{
+              duration: 0.5,
+              repeat: timeProgress < 10 ? Infinity : 0,
+            }}
             className="relative"
           >
             <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full border border-white/30 flex items-center justify-center">
@@ -218,7 +215,7 @@ export function GameScreen() {
                 <div className="text-xs text-white/70">sec</div>
               </div>
             </div>
-            
+
             {/* Progress circle */}
             <svg className="absolute inset-0 w-24 h-24 transform -rotate-90">
               <circle
@@ -242,18 +239,30 @@ export function GameScreen() {
                 transition={{ duration: 0.5 }}
                 style={{
                   strokeDasharray: "276.46",
-                  strokeDashoffset: `${276.46 * (1 - timeProgress / 100)}`
+                  strokeDashoffset: `${276.46 * (1 - timeProgress / 100)}`,
                 }}
               />
               <defs>
                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop 
-                    offset="0%" 
-                    stopColor={timeProgress > 60 ? "#10b981" : timeProgress > 30 ? "#f59e0b" : "#ef4444"} 
+                  <stop
+                    offset="0%"
+                    stopColor={
+                      timeProgress > 60
+                        ? "#10b981"
+                        : timeProgress > 30
+                        ? "#f59e0b"
+                        : "#ef4444"
+                    }
                   />
-                  <stop 
-                    offset="100%" 
-                    stopColor={timeProgress > 60 ? "#059669" : timeProgress > 30 ? "#d97706" : "#dc2626"} 
+                  <stop
+                    offset="100%"
+                    stopColor={
+                      timeProgress > 60
+                        ? "#059669"
+                        : timeProgress > 30
+                        ? "#d97706"
+                        : "#dc2626"
+                    }
                   />
                 </linearGradient>
               </defs>
@@ -306,7 +315,8 @@ export function GameScreen() {
                     <div className="p-4 flex items-center justify-center space-x-3">
                       <Eye className="h-5 w-5 text-green-600" />
                       <span className="text-green-800 font-medium">
-                        Correction affichée - La bonne réponse est mise en évidence
+                        Correction affichée - La bonne réponse est mise en
+                        évidence
                       </span>
                     </div>
                   </motion.div>
@@ -322,23 +332,32 @@ export function GameScreen() {
                         key={answer}
                         initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 + index * 0.1, type: "spring" }}
+                        transition={{
+                          delay: 0.4 + index * 0.1,
+                          type: "spring",
+                        }}
                         whileHover={{ scale: hasAnswered ? 1 : 1.02 }}
                         whileTap={{ scale: hasAnswered ? 1 : 0.98 }}
                       >
                         <Button
                           onClick={() => handleAnswerSelect(answer)}
-                          disabled={hasAnswered || !gameState.isQuestionActive || isLoading}
-                          className={`w-full h-20 text-left justify-start text-lg font-medium transition-all duration-500 rounded-2xl border-2 ${getAnswerButtonStyle(answer)}`}
+                          disabled={
+                            hasAnswered ||
+                            !gameState.isQuestionActive ||
+                            isLoading
+                          }
+                          className={`w-full h-20 text-left justify-start text-lg font-medium transition-all duration-500 rounded-2xl border-2 ${getAnswerButtonStyle(
+                            answer
+                          )}`}
                         >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-4">
                               <div className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center text-lg font-bold">
                                 {String.fromCharCode(65 + index)}
                               </div>
-                              <span 
+                              <span
                                 className="flex-1 text-left"
-                                dangerouslySetInnerHTML={{ __html: answer }} 
+                                dangerouslySetInnerHTML={{ __html: answer }}
                               />
                             </div>
                             <div className="flex items-center space-x-2">
@@ -366,7 +385,9 @@ export function GameScreen() {
             >
               <div className="inline-flex items-center space-x-3 bg-white/20 backdrop-blur-md text-white px-6 py-3 rounded-2xl border border-white/30">
                 <CheckCircle className="h-6 w-6" />
-                <span className="font-medium text-lg">Réponse envoyée ! En attente des autres joueurs...</span>
+                <span className="font-medium text-lg">
+                  Réponse envoyée ! En attente des autres joueurs...
+                </span>
               </div>
             </motion.div>
           )}
@@ -390,10 +411,14 @@ export function GameScreen() {
                   <span className="text-sm">Live</span>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {currentRoom.players
-                  .sort((a, b) => (gameState.scores[b.id] || 0) - (gameState.scores[a.id] || 0))
+                  .sort(
+                    (a, b) =>
+                      (gameState.scores[b.id] || 0) -
+                      (gameState.scores[a.id] || 0)
+                  )
                   .map((player, index) => (
                     <motion.div
                       key={player.id}
@@ -401,15 +426,15 @@ export function GameScreen() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.9 + index * 0.1 }}
                       className={`relative p-4 rounded-2xl transition-all duration-300 ${
-                        player.id === currentPlayer?.id 
-                          ? 'bg-white/30 border-2 border-yellow-400 shadow-lg' 
-                          : 'bg-white/10 border border-white/20'
+                        player.id === currentPlayer?.id
+                          ? "bg-white/30 border-2 border-yellow-400 shadow-lg"
+                          : "bg-white/10 border border-white/20"
                       }`}
                     >
                       <div className="flex flex-col items-center space-y-3">
                         <div className="relative">
-                          <PlayerAvatar 
-                            name={player.name} 
+                          <PlayerAvatar
+                            name={player.name}
                             size="md"
                             isHost={player.isHost}
                           />
@@ -426,9 +451,7 @@ export function GameScreen() {
                           <p className="text-2xl font-bold text-yellow-400">
                             {gameState.scores[player.id] || 0}
                           </p>
-                          <p className="text-white/60 text-xs">
-                            #{index + 1}
-                          </p>
+                          <p className="text-white/60 text-xs">#{index + 1}</p>
                         </div>
                       </div>
                     </motion.div>
@@ -439,5 +462,5 @@ export function GameScreen() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }

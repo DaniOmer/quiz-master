@@ -1,18 +1,17 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useSocket } from '@/store/useSocket'
-import { 
-  Trophy, 
-  Medal, 
-  Star, 
-  Users, 
-  Target, 
-  Clock, 
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSocket } from "@/store/useSocket";
+import {
+  Trophy,
+  Medal,
+  Star,
+  Users,
+  Target,
   Zap,
   Crown,
   Award,
@@ -20,57 +19,71 @@ import {
   RotateCcw,
   Home,
   Share2,
-  Download,
-  Eye
-} from 'lucide-react'
-import { PlayerAvatar } from '@/components/ui/player-avatar'
-import { CorrectionSheet } from './CorrectionSheet'
-import confetti from 'canvas-confetti'
-import toast from 'react-hot-toast'
-import type { PlayerAnswer } from '@/shared/types'
+  Eye,
+} from "lucide-react";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
+import { CorrectionSheet } from "./CorrectionSheet";
+import confetti from "canvas-confetti";
+import toast from "react-hot-toast";
+import type { PlayerAnswer } from "@/shared/types";
+
+interface Question {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  category: string;
+  difficulty: string;
+  timeLimit: number;
+}
 
 export function ResultsScreen() {
-  const { currentRoom, gameState, currentPlayer, playerAnswers, leaveRoom } = useSocket()
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [showCorrection, setShowCorrection] = useState(false)
-  const router = useRouter()
+  const { currentRoom, gameState, currentPlayer, playerAnswers, leaveRoom } =
+    useSocket();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showCorrection, setShowCorrection] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (currentRoom && gameState && !showConfetti) {
       const sortedPlayers = [...currentRoom.players].sort(
         (a, b) => (gameState.scores[b.id] || 0) - (gameState.scores[a.id] || 0)
-      )
-      
-      const currentPlayerPosition = sortedPlayers.findIndex(p => p.id === currentPlayer?.id)
-      
+      );
+
+      const currentPlayerPosition = sortedPlayers.findIndex(
+        (p) => p.id === currentPlayer?.id
+      );
+
       if (currentPlayerPosition < 3) {
         setTimeout(() => {
           confetti({
             particleCount: 100,
             spread: 70,
-            origin: { y: 0.6 }
-          })
-        }, 1000)
-        setShowConfetti(true)
+            origin: { y: 0.6 },
+          });
+        }, 1000);
+        setShowConfetti(true);
       }
     }
-  }, [currentRoom, gameState, currentPlayer, showConfetti])
+  }, [currentRoom, gameState, currentPlayer, showConfetti]);
 
   const handleLeaveRoom = () => {
-    leaveRoom()
-  }
+    leaveRoom();
+  };
 
   const handleReplay = () => {
-    leaveRoom()
-    router.push('/')
-  }
+    leaveRoom();
+    router.push("/");
+  };
 
   const handleShare = async () => {
-    if (!currentRoom || !currentPlayer) return
+    if (!currentRoom || !currentPlayer) return;
 
-    const correctAnswers = Object.values(playerAnswers).filter(answer => answer.isCorrect).length
-    const accuracy = Math.round((correctAnswers / totalQuestions) * 100)
-    
+    const correctAnswers = Object.values(playerAnswers).filter(
+      (answer) => answer.isCorrect
+    ).length;
+    const accuracy = Math.round((correctAnswers / totalQuestions) * 100);
+
     const shareText = `🎯 Quiz terminé sur QuizMaster !
     
 🏆 Position: ${currentPlayerPosition}/${sortedPlayers.length}
@@ -78,38 +91,38 @@ export function ResultsScreen() {
 🎯 Précision: ${accuracy}%
 📊 Questions: ${correctAnswers}/${totalQuestions} correctes
 
-Rejoignez-nous pour jouer ! 🎮`
+Rejoignez-nous pour jouer ! 🎮`;
 
     const shareData = {
-      title: 'QuizMaster - Mes résultats',
+      title: "QuizMaster - Mes résultats",
       text: shareText,
-      url: window.location.origin
-    }
+      url: window.location.origin,
+    };
 
     if (navigator.share) {
       try {
-        await navigator.share(shareData)
-        toast.success('Résultats partagés !')
+        await navigator.share(shareData);
+        toast.success("Résultats partagés !");
       } catch (error) {
-        if (error instanceof Error && error.name !== 'AbortError') {
-          console.error('Erreur de partage:', error)
-          fallbackShare(shareText)
+        if (error instanceof Error && error.name !== "AbortError") {
+          console.error("Erreur de partage:", error);
+          fallbackShare(shareText);
         }
       }
     } else {
-      fallbackShare(shareText)
+      fallbackShare(shareText);
     }
-  }
+  };
 
   const fallbackShare = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text)
-      toast.success('Résultats copiés dans le presse-papiers !')
+      await navigator.clipboard.writeText(text);
+      toast.success("Résultats copiés dans le presse-papiers !");
     } catch (error) {
-      console.error('Erreur copie presse-papiers:', error)
-      toast.error('Impossible de partager les résultats')
+      console.error("Erreur copie presse-papiers:", error);
+      toast.error("Impossible de partager les résultats");
     }
-  }
+  };
 
   if (!currentRoom || !gameState) {
     return (
@@ -120,64 +133,81 @@ Rejoignez-nous pour jouer ! 🎮`
           className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
         />
       </div>
-    )
+    );
   }
 
   const sortedPlayers = [...currentRoom.players].sort(
     (a, b) => (gameState.scores[b.id] || 0) - (gameState.scores[a.id] || 0)
-  )
+  );
 
-  const winner = sortedPlayers[0]
-  const currentPlayerPosition = sortedPlayers.findIndex(p => p.id === currentPlayer?.id) + 1
-  const currentPlayerScore = gameState.scores[currentPlayer?.id || ''] || 0
-  const maxScore = gameState.scores[winner.id] || 0
-  const totalQuestions = currentRoom.settings.questionCount
-  const averageScore = Object.values(gameState.scores).reduce((a, b) => a + b, 0) / sortedPlayers.length
+  const currentPlayerPosition =
+    sortedPlayers.findIndex((p) => p.id === currentPlayer?.id) + 1;
+  const currentPlayerScore = gameState.scores[currentPlayer?.id || ""] || 0;
+  const totalQuestions = currentRoom.settings.questionCount;
+  const averageScore =
+    Object.values(gameState.scores).reduce((a, b) => a + b, 0) /
+    sortedPlayers.length;
 
   const getPodiumHeight = (position: number) => {
     switch (position) {
-      case 0: return 'h-32' 
-      case 1: return 'h-24'
-      case 2: return 'h-20'
-      default: return 'h-16'
+      case 0:
+        return "h-32";
+      case 1:
+        return "h-24";
+      case 2:
+        return "h-20";
+      default:
+        return "h-16";
     }
-  }
+  };
 
   const getPodiumColor = (position: number) => {
     switch (position) {
-      case 0: return 'bg-gradient-to-t from-yellow-400 to-yellow-300' 
-      case 1: return 'bg-gradient-to-t from-gray-400 to-gray-300' 
-      case 2: return 'bg-gradient-to-t from-orange-400 to-orange-300'
-      default: return 'bg-gradient-to-t from-blue-400 to-blue-300'
+      case 0:
+        return "bg-gradient-to-t from-yellow-400 to-yellow-300";
+      case 1:
+        return "bg-gradient-to-t from-gray-400 to-gray-300";
+      case 2:
+        return "bg-gradient-to-t from-orange-400 to-orange-300";
+      default:
+        return "bg-gradient-to-t from-blue-400 to-blue-300";
     }
-  }
+  };
 
   const getMedalIcon = (position: number) => {
     switch (position) {
-      case 0: return <Crown className="h-8 w-8 text-yellow-600" />
-      case 1: return <Medal className="h-7 w-7 text-gray-600" />
-      case 2: return <Award className="h-6 w-6 text-orange-600" />
-      default: return <Star className="h-5 w-5 text-blue-600" />
+      case 0:
+        return <Crown className="h-8 w-8 text-yellow-600" />;
+      case 1:
+        return <Medal className="h-7 w-7 text-gray-600" />;
+      case 2:
+        return <Award className="h-6 w-6 text-orange-600" />;
+      default:
+        return <Star className="h-5 w-5 text-blue-600" />;
     }
-  }
+  };
 
-  const getCorrectionData = (): { questions: any[], playerAnswers: PlayerAnswer[] } => {
-    if (!currentRoom || !currentPlayer) return { questions: [], playerAnswers: [] }
-    
-    const questions = currentRoom.questions
+  const getCorrectionData = (): {
+    questions: Question[];
+    playerAnswers: PlayerAnswer[];
+  } => {
+    if (!currentRoom || !currentPlayer)
+      return { questions: [], playerAnswers: [] };
+
+    const questions = currentRoom.questions;
     const correctionAnswers: PlayerAnswer[] = questions.map((question) => {
-      const storedAnswer = playerAnswers[question.id]
-      
+      const storedAnswer = playerAnswers[question.id];
+
       return {
         questionId: question.id,
-        answer: storedAnswer?.answer || 'Pas de réponse',
+        answer: storedAnswer?.answer || "Pas de réponse",
         isCorrect: storedAnswer?.isCorrect || false,
-        timeSpent: storedAnswer?.timeSpent || question.timeLimit
-      }
-    })
-    
-    return { questions, playerAnswers: correctionAnswers }
-  }
+        timeSpent: storedAnswer?.timeSpent || question.timeLimit,
+      };
+    });
+
+    return { questions, playerAnswers: correctionAnswers };
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
@@ -198,9 +228,7 @@ Rejoignez-nous pour jouer ! 🎮`
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
             Quiz Terminé !
           </h1>
-          <p className="text-xl text-gray-600">
-            Voici les résultats finaux
-          </p>
+          <p className="text-xl text-gray-600">Voici les résultats finaux</p>
         </motion.div>
 
         {/* Podium */}
@@ -220,9 +248,9 @@ Rejoignez-nous pour jouer ! 🎮`
             <CardContent className="p-8">
               <div className="flex items-end justify-center space-x-8 mb-8">
                 {sortedPlayers.slice(0, 3).map((player, index) => {
-                  const actualPosition = index === 0 ? 0 : index === 1 ? 1 : 2
-                  const displayOrder = index === 1 ? 0 : index === 0 ? 1 : 2 // 2ème, 1er, 3ème
-                  
+                  const actualPosition = index === 0 ? 0 : index === 1 ? 1 : 2;
+                  const displayOrder = index === 1 ? 0 : index === 0 ? 1 : 2; // 2ème, 1er, 3ème
+
                   return (
                     <motion.div
                       key={player.id}
@@ -232,18 +260,18 @@ Rejoignez-nous pour jouer ! 🎮`
                       className="flex flex-col items-center space-y-4"
                     >
                       <motion.div
-                        animate={{ 
+                        animate={{
                           scale: actualPosition === 0 ? [1, 1.1, 1] : 1,
-                          rotate: actualPosition === 0 ? [0, 5, -5, 0] : 0
+                          rotate: actualPosition === 0 ? [0, 5, -5, 0] : 0,
                         }}
-                        transition={{ 
-                          duration: 2, 
-                          repeat: actualPosition === 0 ? Infinity : 0 
+                        transition={{
+                          duration: 2,
+                          repeat: actualPosition === 0 ? Infinity : 0,
                         }}
                         className="relative"
                       >
-                        <PlayerAvatar 
-                          name={player.name} 
+                        <PlayerAvatar
+                          name={player.name}
                           size={actualPosition === 0 ? "xl" : "lg"}
                           isHost={player.isHost}
                         />
@@ -251,7 +279,7 @@ Rejoignez-nous pour jouer ! 🎮`
                           {getMedalIcon(actualPosition)}
                         </div>
                       </motion.div>
-                      
+
                       <div className="text-center">
                         <h3 className="font-bold text-lg text-gray-900">
                           {player.name}
@@ -259,23 +287,28 @@ Rejoignez-nous pour jouer ! 🎮`
                         <p className="text-2xl font-bold text-blue-600">
                           {gameState.scores[player.id] || 0} pts
                         </p>
-                        <p className="text-sm text-gray-600">
-                          {actualPosition + 1}{actualPosition === 0 ? 'er' : 'ème'} place
-                        </p>
+                        <div className="text-lg font-bold text-blue-600">
+                          {actualPosition + 1}
+                          {actualPosition === 0 ? "er" : "ème"} place
+                        </div>
                       </div>
-                      
+
                       <motion.div
                         initial={{ height: 0 }}
-                        animate={{ height: 'auto' }}
+                        animate={{ height: "auto" }}
                         transition={{ delay: 0.8 + displayOrder * 0.2 }}
-                        className={`w-24 ${getPodiumHeight(actualPosition)} ${getPodiumColor(actualPosition)} rounded-t-lg flex items-end justify-center pb-2`}
+                        className={`w-24 ${getPodiumHeight(
+                          actualPosition
+                        )} ${getPodiumColor(
+                          actualPosition
+                        )} rounded-t-lg flex items-end justify-center pb-2`}
                       >
                         <span className="text-white font-bold text-lg">
                           {actualPosition + 1}
                         </span>
                       </motion.div>
                     </motion.div>
-                  )
+                  );
                 })}
               </div>
             </CardContent>
@@ -326,9 +359,14 @@ Rejoignez-nous pour jouer ! 🎮`
                   <TrendingUp className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-purple-600">
                     {(() => {
-                      const correctAnswers = Object.values(playerAnswers).filter(answer => answer.isCorrect).length
-                      return Math.round((correctAnswers / totalQuestions) * 100)
-                    })()}%
+                      const correctAnswers = Object.values(
+                        playerAnswers
+                      ).filter((answer) => answer.isCorrect).length;
+                      return Math.round(
+                        (correctAnswers / totalQuestions) * 100
+                      );
+                    })()}
+                    %
                   </div>
                   <div className="text-sm text-gray-600">Précision</div>
                 </motion.div>
@@ -339,7 +377,7 @@ Rejoignez-nous pour jouer ! 🎮`
                 >
                   <Zap className="h-8 w-8 text-orange-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-orange-600">
-                    {currentPlayerScore > averageScore ? '+' : ''}
+                    {currentPlayerScore > averageScore ? "+" : ""}
                     {Math.round(currentPlayerScore - averageScore)}
                   </div>
                   <div className="text-sm text-gray-600">vs Moyenne</div>
@@ -371,17 +409,17 @@ Rejoignez-nous pour jouer ! 🎮`
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 1 + index * 0.1 }}
                     className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 ${
-                      player.id === currentPlayer?.id 
-                        ? 'bg-blue-100 border-2 border-blue-300 shadow-lg' 
-                        : 'bg-gray-50 hover:bg-gray-100'
+                      player.id === currentPlayer?.id
+                        ? "bg-blue-100 border-2 border-blue-300 shadow-lg"
+                        : "bg-gray-50 hover:bg-gray-100"
                     }`}
                   >
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 font-bold text-gray-700">
                         {index + 1}
                       </div>
-                      <PlayerAvatar 
-                        name={player.name} 
+                      <PlayerAvatar
+                        name={player.name}
                         size="md"
                         isHost={player.isHost}
                       />
@@ -389,18 +427,27 @@ Rejoignez-nous pour jouer ! 🎮`
                         <h3 className="font-semibold text-gray-900">
                           {player.name}
                           {player.id === currentPlayer?.id && (
-                            <span className="ml-2 text-sm text-blue-600">(Vous)</span>
+                            <span className="ml-2 text-sm text-blue-600">
+                              (Vous)
+                            </span>
                           )}
                         </h3>
                         <p className="text-sm text-gray-600">
                           {/* Pour l'instant, on ne peut calculer la précision que pour le joueur actuel */}
-                          {player.id === currentPlayer?.id 
+                          {player.id === currentPlayer?.id
                             ? `${(() => {
-                                const correctAnswers = Object.values(playerAnswers).filter(answer => answer.isCorrect).length
-                                return Math.round((correctAnswers / totalQuestions) * 100)
+                                const correctAnswers = Object.values(
+                                  playerAnswers
+                                ).filter((answer) => answer.isCorrect).length;
+                                return Math.round(
+                                  (correctAnswers / totalQuestions) * 100
+                                );
                               })()}% de précision`
-                            : `${Math.round((gameState.scores[player.id] / (totalQuestions * 1500)) * 100)}% estimé`
-                          }
+                            : `${Math.round(
+                                (gameState.scores[player.id] /
+                                  (totalQuestions * 1500)) *
+                                  100
+                              )}% estimé`}
                         </p>
                       </div>
                     </div>
@@ -463,26 +510,28 @@ Rejoignez-nous pour jouer ! 🎮`
               className="flex items-center space-x-2 h-12 px-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               <Home className="h-5 w-5" />
-              <span>Retour à l'accueil</span>
+              <span>Retour à l&apos;accueil</span>
             </Button>
           </motion.div>
         </motion.div>
       </div>
 
       {/* Composant de correction */}
-      {showCorrection && currentPlayer && (() => {
-        const { questions, playerAnswers: correctionAnswers } = getCorrectionData()
-        return (
-          <CorrectionSheet
-            open={showCorrection}
-            onOpenChange={setShowCorrection}
-            questions={questions}
-            playerAnswers={correctionAnswers}
-            playerName={currentPlayer.name}
-            totalScore={currentPlayerScore}
-          />
-        )
-      })()}
+      {showCorrection &&
+        currentPlayer &&
+        (() => {
+          const { questions, playerAnswers: correctionAnswers } =
+            getCorrectionData();
+          return (
+            <CorrectionSheet
+              open={showCorrection}
+              onOpenChange={setShowCorrection}
+              questions={questions}
+              playerAnswers={correctionAnswers}
+              totalScore={currentPlayerScore}
+            />
+          );
+        })()}
     </div>
-  )
+  );
 }

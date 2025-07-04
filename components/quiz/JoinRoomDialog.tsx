@@ -1,76 +1,79 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useSocket } from '@/store/useSocket'
-import { 
-  Users, 
-  Hash, 
-  Sparkles, 
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSocket } from "@/store/useSocket";
+import {
+  Users,
+  Hash,
+  Sparkles,
   LogIn,
   User,
   QrCode,
   Link,
-  ArrowRight
-} from 'lucide-react'
-import toast from 'react-hot-toast'
+  ArrowRight,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
 interface JoinRoomDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
-  const { joinRoom, isLoading } = useSocket()
-  const [playerName, setPlayerName] = useState('')
-  const [roomCode, setRoomCode] = useState('')
+  const { joinRoom, isLoading } = useSocket();
+  const [playerName, setPlayerName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!playerName.trim()) {
-      toast.error('Veuillez entrer votre nom')
-      return
+      toast.error("Veuillez entrer votre nom");
+      return;
     }
 
     if (playerName.trim().length < 2) {
-      toast.error('Le nom doit contenir au moins 2 caractères')
-      return
+      toast.error("Le nom doit contenir au moins 2 caractères");
+      return;
     }
 
     if (playerName.trim().length > 20) {
-      toast.error('Le nom ne peut pas dépasser 20 caractères')
-      return
+      toast.error("Le nom ne peut pas dépasser 20 caractères");
+      return;
     }
 
     if (!roomCode.trim()) {
-      toast.error('Veuillez entrer le code de la salle')
-      return
+      toast.error("Veuillez entrer le code de la salle");
+      return;
     }
 
     if (roomCode.trim().length !== 6) {
-      toast.error('Le code doit contenir exactement 6 caractères')
-      return
+      toast.error("Le code doit contenir exactement 6 caractères");
+      return;
     }
 
     try {
-      await joinRoom(roomCode.trim().toUpperCase(), playerName.trim())
-      onOpenChange(false)
+      await joinRoom(roomCode.trim().toUpperCase(), playerName.trim());
+      onOpenChange(false);
     } catch (error) {
-      console.error('Erreur lors de la connexion à la salle:', error)
-      toast.error('Impossible de rejoindre la salle')
+      console.error("Erreur lors de la connexion à la salle:", error);
+      toast.error("Impossible de rejoindre la salle");
     }
-  }
+  };
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
-    setRoomCode(value)
-  }
+    const value = e.target.value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 6);
+    setRoomCode(value);
+  };
 
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <motion.div
@@ -108,7 +111,7 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
               </motion.div>
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Informations du joueur */}
@@ -120,9 +123,11 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
               >
                 <div className="flex items-center space-x-2 mb-4">
                   <User className="h-5 w-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">Vos informations</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Vos informations
+                  </h3>
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
                     Votre nom *
@@ -151,9 +156,11 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
               >
                 <div className="flex items-center space-x-2 mb-4">
                   <Hash className="h-5 w-5 text-green-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">Code de la salle</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Code de la salle
+                  </h3>
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
                     Code à 6 caractères *
@@ -168,7 +175,7 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
                     required
                   />
                   <p className="text-xs text-gray-500">
-                    Entrez le code partagé par l'hôte
+                    Entrez le code partagé par l&apos;hôte
                   </p>
                 </div>
               </motion.div>
@@ -191,7 +198,9 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
                   >
                     <QrCode className="h-5 w-5 mr-3 text-purple-600" />
                     <div>
-                      <div className="font-medium text-gray-900">Scanner QR Code</div>
+                      <div className="font-medium text-gray-900">
+                        Scanner QR Code
+                      </div>
                       <div className="text-gray-600">Avec votre téléphone</div>
                     </div>
                   </motion.div>
@@ -201,7 +210,9 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
                   >
                     <Link className="h-5 w-5 mr-3 text-blue-600" />
                     <div>
-                      <div className="font-medium text-gray-900">Lien d'invitation</div>
+                      <div className="font-medium text-gray-900">
+                        Lien d&apos;invitation
+                      </div>
                       <div className="text-gray-600">Cliquez sur le lien</div>
                     </div>
                   </motion.div>
@@ -230,7 +241,7 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
                     Annuler
                   </Button>
                 </motion.div>
-                
+
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -238,14 +249,23 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
                 >
                   <Button
                     type="submit"
-                    disabled={isLoading || !playerName.trim() || !roomCode.trim() || roomCode.length !== 6}
+                    disabled={
+                      isLoading ||
+                      !playerName.trim() ||
+                      !roomCode.trim() ||
+                      roomCode.length !== 6
+                    }
                     className="w-full h-12 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {isLoading ? (
                       <div className="flex items-center">
                         <motion.div
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
                           className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-3"
                         />
                         Connexion...
@@ -264,5 +284,5 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
         </Card>
       </motion.div>
     </motion.div>
-  )
+  );
 }

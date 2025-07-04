@@ -50,7 +50,7 @@
       no_log: true
 
     - name: 🛑 Stop existing containers
-      docker_compose:
+      community.docker.docker_compose_v2:
         project_src: "{{ app_directory }}"
         state: absent
       ignore_errors: yes
@@ -91,11 +91,11 @@
         - "{{ backend_image }}"
 
     - name: 🚀 Start application
-      docker_compose:
+      community.docker.docker_compose_v2:
         project_src: "{{ app_directory }}"
         state: present
-        pull: yes
-        recreate: always
+        pull: "always"
+        recreate: "always"
       register: docker_result
 
     - name: 📊 Display deployment result

@@ -18,8 +18,8 @@ all:
 
     quiz_master:
       children:
-        - frontend
-        - backend
+        frontend:
+        backend:
       vars:
         # Variables communes
         docker_compose_version: "2.21.0"

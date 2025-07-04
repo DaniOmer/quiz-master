@@ -124,6 +124,10 @@ jobs:
         run: |
           pip install ansible docker
 
+      - name: 📦 Install Ansible collections
+        run: |
+          ansible-galaxy collection install community.docker
+
       - name: 🔐 Setup SSH keys
         run: |
           mkdir -p ~/.ssh
@@ -159,3 +163,5 @@ jobs:
           FRONTEND_IMAGE: ${{ needs.build.outputs.frontend-image }}
           BACKEND_IMAGE: ${{ needs.build.outputs.backend-image }}
           DO_PAT: ${{ secrets.DO_PAT }}
+          FRONTEND_SERVER_IP: ${{ secrets.FRONTEND_SERVER_IP }}
+          BACKEND_SERVER_IP: ${{ secrets.BACKEND_SERVER_IP }}

@@ -190,6 +190,9 @@ jobs:
         with:
           token: ${{ secrets.DO_PAT }}
 
+      - name: 🔐 Login to Digital Ocean Container Registry
+        run: doctl registry login
+
       - name: 🔍 Test Digital Ocean token
         run: |
           echo "Testing Digital Ocean token..."

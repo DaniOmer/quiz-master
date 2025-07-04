@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: "{{ backend_image }}"
+    image: "{{ app_backend_image }}"
     container_name: "{{ app_name }}-backend"
     restart: unless-stopped
     ports:

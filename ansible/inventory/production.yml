@@ -41,6 +41,10 @@ all:
         nginx_port: 80
         ssl_port: 443
 
+        # Server IPs for cross-server communication
+        frontend_server_ip: "{{ lookup('env', 'FRONTEND_SERVER_IP') | default(hostvars['frontend-server']['ansible_host']) }}"
+        backend_server_ip: "{{ lookup('env', 'BACKEND_SERVER_IP') | default(hostvars['backend-server']['ansible_host']) }}"
+
         # Environment
         node_env: "production"
         log_level: "info"

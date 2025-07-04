@@ -5,12 +5,12 @@
   gather_facts: yes
 
   vars:
-    # Variables depuis les variables d'environnement
-    registry: "{{ lookup('env', 'REGISTRY') }}"
-    registry_name: "{{ lookup('env', 'REGISTRY_NAME') }}"
-    frontend_image: "{{ lookup('env', 'FRONTEND_IMAGE') }}"
-    backend_image: "{{ lookup('env', 'BACKEND_IMAGE') }}"
-    do_pat: "{{ lookup('env', 'DO_PAT') }}"
+    # Variables par défaut (peuvent être surchargées par --extra-vars)
+    app_registry: "{{ registry | default('registry.digitalocean.com') }}"
+    app_registry_name: "{{ registry_name | default('') }}"
+    app_frontend_image: "{{ frontend_image | default('') }}"
+    app_backend_image: "{{ backend_image | default('') }}"
+    app_do_pat: "{{ do_pat | default('') }}"
 
     # Configuration des serveurs
     frontend_server_ip: "{{ lookup('env', 'FRONTEND_SERVER_IP') }}"
@@ -21,12 +21,28 @@
       debug:
         msg: |
           Deploying Quiz Master:
-          - Frontend Image: {{ frontend_image }}
-          - Backend Image: {{ backend_image }}
-          - Registry: {{ registry }}/{{ registry_name }}
+          - Frontend Image: {{ app_frontend_image }}
+          - Backend Image: {{ app_backend_image }}
+          - Registry: {{ app_registry }}/{{ app_registry_name }}
           - Target: {{ inventory_hostname }}
           - Type: {{ server_type }}
-          - Current Image: {{ frontend_image if server_type == 'frontend' else backend_image }}
+          - Current Image: {{ app_frontend_image if server_type == 'frontend' else app_backend_image }}
+
+    - name: ❌ Fail if required variables are missing
+      fail:
+        msg: "Missing required variables: {{ missing_vars | join(', ') }}"
+      vars:
+        missing_vars: >-
+          {{
+            ([
+              'registry' if app_registry == '' else '',
+              'registry_name' if app_registry_name == '' else '',
+              'frontend_image' if app_frontend_image == '' and server_type == 'frontend' else '',
+              'backend_image' if app_backend_image == '' and server_type == 'backend' else '',
+              'do_pat' if app_do_pat == '' else ''
+            ] | select) | list
+          }}
+      when: missing_vars | length > 0
 
   tasks:
     - name: 🔐 Install doctl
@@ -44,15 +60,37 @@
         group: root
         mode: "0755"
 
+    - name: 🔐 Create temporary token file
+      copy:
+        content: "{{ app_do_pat }}"
+        dest: "/tmp/do_token"
+        mode: "0600"
+        owner: root
+        group: root
+      no_log: true
+
     - name: 🔐 Login to Digital Ocean Container Registry
       shell: |
         set -e
         echo "Authenticating with Digital Ocean Registry..."
-        echo "{{ do_pat }}" | /usr/local/bin/doctl auth init --access-token -
+
+        # Authentification avec le token
+        cat /tmp/do_token | /usr/local/bin/doctl auth init --access-token -
+
+        # Vérifier l'authentification
+        /usr/local/bin/doctl account get
+
+        # Login au registry
         /usr/local/bin/doctl registry login
+
         echo "Registry login successful"
-      no_log: false
       register: registry_login_result
+      no_log: false
+
+    - name: 🗑️ Remove temporary token file
+      file:
+        path: "/tmp/do_token"
+        state: absent
 
     - name: 📊 Display registry login result
       debug:
@@ -92,10 +130,10 @@
 
     - name: 🎯 Pull latest images
       docker_image:
-        name: "{{ frontend_image if server_type == 'frontend' else backend_image }}"
+        name: "{{ app_frontend_image if server_type == 'frontend' else app_backend_image }}"
         source: pull
         force_source: yes
-      when: (server_type == 'frontend' and frontend_image != '') or (server_type == 'backend' and backend_image != '')
+      when: (server_type == 'frontend' and app_frontend_image != '') or (server_type == 'backend' and app_backend_image != '')
 
     - name: 🚀 Start application
       community.docker.docker_compose_v2:

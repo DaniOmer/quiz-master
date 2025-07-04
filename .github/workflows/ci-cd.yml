@@ -185,45 +185,20 @@ jobs:
           ssh -o ConnectTimeout=10 frontend-server "echo 'Frontend server connected successfully'"
           ssh -o ConnectTimeout=10 backend-server "echo 'Backend server connected successfully'"
 
-      - name: 🔐 Install doctl
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_PAT }}
-
-      - name: 🔐 Login to Digital Ocean Container Registry
-        run: doctl registry login
-
-      - name: 🔍 Test Digital Ocean token
+      - name: 🔐 Create registry authentication token file
         run: |
-          echo "Testing Digital Ocean token..."
-          doctl account get || echo "❌ Token test failed"
-          doctl registry list || echo "❌ Registry access failed"
-
-      - name: 🔍 Debug environment variables
-        run: |
-          echo "=== Debug Info ==="
-          echo "REGISTRY: $REGISTRY"
-          echo "REGISTRY_NAME: $REGISTRY_NAME"
-          echo "FRONTEND_IMAGE: $FRONTEND_IMAGE"
-          echo "BACKEND_IMAGE: $BACKEND_IMAGE"
-          echo "DO_PAT: [HIDDEN]"
-          echo "=================="
-        env:
-          REGISTRY: ${{ env.REGISTRY }}
-          REGISTRY_NAME: ${{ env.REGISTRY_NAME }}
-          FRONTEND_IMAGE: ${{ needs.build.outputs.frontend-image }}
-          BACKEND_IMAGE: ${{ needs.build.outputs.backend-image }}
-          DO_PAT: ${{ secrets.DO_PAT }}
+          mkdir -p ~/.docker
+          echo "${{ secrets.DO_PAT }}" > ~/.docker/do_token
+          chmod 600 ~/.docker/do_token
 
       - name: 🚀 Deploy with Ansible
         run: |
           cd ansible
-          ansible-playbook -i inventory/production.yml deploy.yml -v
+          ansible-playbook -i inventory/production.yml deploy.yml -v \
+            --extra-vars "frontend_image=${{ needs.build.outputs.frontend-image }}" \
+            --extra-vars "backend_image=${{ needs.build.outputs.backend-image }}" \
+            --extra-vars "registry=${{ env.REGISTRY }}" \
+            --extra-vars "registry_name=${{ env.REGISTRY_NAME }}" \
+            --extra-vars "do_pat=${{ secrets.DO_PAT }}"
         env:
-          REGISTRY: ${{ env.REGISTRY }}
-          REGISTRY_NAME: ${{ env.REGISTRY_NAME }}
-          FRONTEND_IMAGE: ${{ needs.build.outputs.frontend-image }}
-          BACKEND_IMAGE: ${{ needs.build.outputs.backend-image }}
-          DO_PAT: ${{ secrets.DO_PAT }}
-          FRONTEND_SERVER_IP: ${{ secrets.FRONTEND_SERVER_IP }}
-          BACKEND_SERVER_IP: ${{ secrets.BACKEND_SERVER_IP }}
+          ANSIBLE_HOST_KEY_CHECKING: false

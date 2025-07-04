@@ -49,8 +49,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     outputs:
-      frontend-image: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_FRONTEND }}:latest
-      backend-image: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME_BACKEND }}:latest
+      frontend-image: ${{ steps.extract-tags.outputs.frontend-latest }}
+      backend-image: ${{ steps.extract-tags.outputs.backend-latest }}
 
     steps:
       - name: 📥 Checkout code
@@ -104,6 +104,20 @@ jobs:
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
 
+      - name: 🏷️ Extract latest tags
+        id: extract-tags
+        run: |
+          # Extraire le tag latest pour frontend
+          FRONTEND_LATEST=$(echo "${{ steps.meta-frontend.outputs.tags }}" | grep ":latest" | head -1)
+          echo "frontend-latest=$FRONTEND_LATEST" >> $GITHUB_OUTPUT
+
+          # Extraire le tag latest pour backend
+          BACKEND_LATEST=$(echo "${{ steps.meta-backend.outputs.tags }}" | grep ":latest" | head -1)
+          echo "backend-latest=$BACKEND_LATEST" >> $GITHUB_OUTPUT
+
+          echo "Frontend latest: $FRONTEND_LATEST"
+          echo "Backend latest: $BACKEND_LATEST"
+
   # Déploiement avec Ansible
   deploy:
     needs: build
@@ -114,6 +128,13 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
+      - name: 🔍 Debug build outputs
+        run: |
+          echo "=== Build Job Outputs ==="
+          echo "Frontend image: '${{ needs.build.outputs.frontend-image }}'"
+          echo "Backend image: '${{ needs.build.outputs.backend-image }}'"
+          echo "=========================="
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v4
@@ -169,6 +190,12 @@ jobs:
         with:
           token: ${{ secrets.DO_PAT }}
 
+      - name: 🔍 Test Digital Ocean token
+        run: |
+          echo "Testing Digital Ocean token..."
+          doctl account get || echo "❌ Token test failed"
+          doctl registry list || echo "❌ Registry access failed"
+
       - name: 🔍 Debug environment variables
         run: |
           echo "=== Debug Info ==="
@@ -178,6 +205,12 @@ jobs:
           echo "BACKEND_IMAGE: $BACKEND_IMAGE"
           echo "DO_PAT: [HIDDEN]"
           echo "=================="
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REGISTRY_NAME: ${{ env.REGISTRY_NAME }}
+          FRONTEND_IMAGE: ${{ needs.build.outputs.frontend-image }}
+          BACKEND_IMAGE: ${{ needs.build.outputs.backend-image }}
+          DO_PAT: ${{ secrets.DO_PAT }}
 
       - name: 🚀 Deploy with Ansible
         run: |

@@ -1,0 +1,32 @@
+# Fichier de variables chiffrées avec Ansible Vault
+# Pour chiffrer ce fichier : ansible-vault encrypt group_vars/vault.yml
+# Pour éditer : ansible-vault edit group_vars/vault.yml
+# Pour déchiffrer : ansible-vault decrypt group_vars/vault.yml
+
+# Secrets Digital Ocean
+vault_do_pat: "CHANGEME_YOUR_DO_PAT_TOKEN"
+vault_do_registry_name: "CHANGEME_YOUR_REGISTRY_NAME"
+
+# Secrets serveurs
+vault_frontend_server_ip: "CHANGEME_FRONTEND_IP"
+vault_backend_server_ip: "CHANGEME_BACKEND_IP"
+
+# Secrets SSH (si nécessaire)
+vault_ssh_private_key_frontend: |
+  -----BEGIN OPENSSH PRIVATE KEY-----
+  CHANGEME_YOUR_FRONTEND_SSH_PRIVATE_KEY
+  -----END OPENSSH PRIVATE KEY-----
+
+vault_ssh_private_key_backend: |
+  -----BEGIN OPENSSH PRIVATE KEY-----
+  CHANGEME_YOUR_BACKEND_SSH_PRIVATE_KEY
+  -----END OPENSSH PRIVATE KEY-----
+
+# Secrets application (si nécessaire)
+vault_database_password: "CHANGEME_DB_PASSWORD"
+vault_jwt_secret: "CHANGEME_JWT_SECRET"
+vault_api_key: "CHANGEME_API_KEY"
+
+# Configuration SSL/TLS (pour future implémentation HTTPS)
+vault_ssl_cert_email: "admin@yourdomain.com"
+vault_domain_name: "yourdomain.com"

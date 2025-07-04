@@ -35,3 +35,27 @@ locale: "fr_FR.UTF-8"
 log_retention_days: 30
 log_max_size: "10m"
 log_max_files: 3
+
+# Variables sécurisées (référencent le vault)
+# Ces variables sont utilisées si les variables d'environnement ne sont pas définies
+do_pat: "{{ vault_do_pat | default(lookup('env', 'DO_PAT')) }}"
+registry_name: "{{ vault_do_registry_name | default(lookup('env', 'DO_REGISTRY_NAME')) }}"
+
+# IPs des serveurs (avec fallback sur le vault)
+frontend_server_ip: "{{ lookup('env', 'FRONTEND_SERVER_IP') | default(vault_frontend_server_ip) }}"
+backend_server_ip: "{{ lookup('env', 'BACKEND_SERVER_IP') | default(vault_backend_server_ip) }}"
+
+# Configuration de monitoring
+monitoring_enabled: false
+metrics_port: 9090
+grafana_port: 3001
+
+# Configuration de sauvegarde
+backup_enabled: true
+backup_retention_days: 7
+backup_directory: "/opt/backups/quiz-master"
+
+# Configuration SSL/TLS (pour future implémentation)
+ssl_enabled: false
+ssl_cert_email: "{{ vault_ssl_cert_email | default('admin@localhost') }}"
+domain_name: "{{ vault_domain_name | default('localhost') }}"

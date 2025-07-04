@@ -68,24 +68,19 @@
         owner: root
         group: root
       no_log: true
+      register: token_file_created
+
+    - name: 🔐 Initialize doctl authentication
+      shell: cat /tmp/do_token | /usr/local/bin/doctl auth init --access-token -
+      no_log: true
+
+    - name: 🔍 Verify doctl authentication
+      shell: /usr/local/bin/doctl account get
+      register: account_info
 
     - name: 🔐 Login to Digital Ocean Container Registry
-      shell: |
-        set -e
-        echo "Authenticating with Digital Ocean Registry..."
-
-        # Authentification avec le token
-        cat /tmp/do_token | /usr/local/bin/doctl auth init --access-token -
-
-        # Vérifier l'authentification
-        /usr/local/bin/doctl account get
-
-        # Login au registry
-        /usr/local/bin/doctl registry login
-
-        echo "Registry login successful"
+      shell: /usr/local/bin/doctl registry login
       register: registry_login_result
-      no_log: false
 
     - name: 🗑️ Remove temporary token file
       file:
@@ -135,6 +130,17 @@
         force_source: yes
       when: (server_type == 'frontend' and app_frontend_image != '') or (server_type == 'backend' and app_backend_image != '')
 
+    - name: 💾 Backup current deployment info
+      shell: |
+        if [ -f "{{ app_directory }}/docker-compose.yml" ]; then
+          cp "{{ app_directory }}/docker-compose.yml" "{{ app_directory }}/docker-compose.yml.backup"
+          echo "Backup created"
+        else
+          echo "No existing deployment to backup"
+        fi
+      register: backup_result
+      ignore_errors: yes
+
     - name: 🚀 Start application
       community.docker.docker_compose_v2:
         project_src: "{{ app_directory }}"
@@ -142,6 +148,7 @@
         pull: "always"
         recreate: "always"
       register: docker_result
+      failed_when: false
 
     - name: 📊 Display deployment result
       debug:
@@ -152,6 +159,8 @@
         port: "{{ frontend_port if server_type == 'frontend' else backend_port }}"
         delay: 10
         timeout: 300
+      register: port_check
+      failed_when: false
 
     - name: 🔍 Verify application health
       uri:
@@ -161,11 +170,43 @@
       register: health_check
       retries: 5
       delay: 10
+      failed_when: false
+
+    - name: 🔄 Rollback on deployment failure
+      block:
+        - name: 🛑 Stop failed deployment
+          community.docker.docker_compose_v2:
+            project_src: "{{ app_directory }}"
+            state: absent
+          ignore_errors: yes
+
+        - name: 🔄 Restore previous deployment
+          copy:
+            src: "{{ app_directory }}/docker-compose.yml.backup"
+            dest: "{{ app_directory }}/docker-compose.yml"
+            remote_src: yes
+          when: backup_result.stdout is defined and "Backup created" in backup_result.stdout
+
+        - name: 🚀 Start previous deployment
+          community.docker.docker_compose_v2:
+            project_src: "{{ app_directory }}"
+            state: present
+          when: backup_result.stdout is defined and "Backup created" in backup_result.stdout
+          ignore_errors: yes
+
+        - name: ❌ Deployment failed
+          fail:
+            msg: |
+              Deployment failed and rollback attempted.
+              Docker result: {{ docker_result.msg | default('Unknown error') }}
+              Port check: {{ 'Failed' if port_check.failed else 'Success' }}
+              Health check: {{ 'Failed' if health_check.failed else 'Success' }}
+      when: docker_result.failed or port_check.failed or health_check.failed
 
     - name: ✅ Deployment successful
       debug:
         msg: "✅ {{ server_type.title() }} deployed successfully!"
-      when: health_check.status == 200
+      when: not (docker_result.failed or port_check.failed or health_check.failed)
 
   post_tasks:
     - name: 🧹 Clean up unused images

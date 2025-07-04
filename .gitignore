@@ -79,3 +79,7 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Ansible Vault
+ansible/.vault_pass
+ansible/ansible.log
